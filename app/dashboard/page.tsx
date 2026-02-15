@@ -10,7 +10,7 @@
 import React from 'react';
 
 // Import all dashboard components
-//import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
+import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
 //import { HealthMetricsGrid } from '@/components/dashboard/HealthMetricCard';
 //import { RecentRecords } from '@/components/dashboard/RecentRecords';
 //import { UpcomingAppointment } from '@/components/dashboard/UpcomingAppointment';
@@ -41,7 +41,10 @@ export default function DashboardPage() {
       {/* ================================
           ROW 1: WELCOME BANNER
           ================================ */}
-      
+      <WelcomeBanner 
+        userName="John" 
+        upcomingAppointments={1} 
+      />
     </div>
   );
 }
