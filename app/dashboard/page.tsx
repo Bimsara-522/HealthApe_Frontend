@@ -13,13 +13,13 @@ import React from 'react';
 import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
 import { HealthMetricsGrid } from '@/components/dashboard/healthmetriccard';
 import { RecentRecords } from '@/components/dashboard/recentrecords';
-//import { UpcomingAppointment } from '@/components/dashboard/UpcomingAppointment';
+import { UpcomingAppointment } from '@/components/dashboard/upcomingappointments';
 //import { MedicationsWidget } from '@/components/dashboard/MedicationsWidget';
 
 // Import types
 import type { HealthMetric } from '@/components/dashboard/healthmetriccard';
 import type { MedicalRecord } from '@/components/dashboard/recentrecords';
-//import type { Appointment } from '@/components/dashboard/UpcomingAppointment';
+import type { Appointment } from '@/components/dashboard/upcomingappointments';
 //import type { Medication } from '@/components/dashboard/MedicationsWidget';
 
 // ============================================
@@ -83,6 +83,14 @@ const recentRecords: MedicalRecord[] = [
   },
 ];
 
+const upcomingAppointment: Appointment = {
+  id: '1',
+  doctorName: 'Dr. Sarah Conner',
+  specialty: 'Cardiologist',
+  date: new Date(2025, 11, 16),  // December 16, 2025
+  time: '9:00 AM',
+};
+
 
 // ============================================
 // DASHBOARD PAGE COMPONENT
@@ -118,6 +126,12 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <RecentRecords records={recentRecords} />
         </div>
+
+        {/* Right Column - Upcoming & Medications */}
+        <div className="space-y-6">
+          <UpcomingAppointment appointment={upcomingAppointment} />
+        </div>
+
       </div>
     </div>
   );
