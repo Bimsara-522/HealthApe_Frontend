@@ -8,8 +8,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sidebar } from '@/components/dashboard/sidebar';
-import { Header } from '@/components/dashboard/header';
+import { Sidebar } from '@/components/dashboard/Sidebar';
+import { Header } from '@/components/dashboard/Header';
 
 // Props interface
 interface DashboardLayoutProps {
