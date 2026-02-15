@@ -7,7 +7,7 @@ import { TrashIcon, EyeIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   uploadedFiles: UploadedFile[];
-  onDelete?: (index: number, category: UploadCategory) => void;
+  onDelete?: (id: string) => void;
 };
 
 const categories: UploadCategory[] = ["Prescription", "Lab Result", "Report", "Other"];
@@ -33,7 +33,7 @@ export default function RightPanel({ uploadedFiles, onDelete }: Props) {
   const formatKB = (bytes: number) => (bytes / 1024).toFixed(1) + " KB";
 
   return (
-    <div className="bg-white shadow-md rounded-2xl p-6 border h-full overflow-y-auto">
+    <div className="bg-white shadow-lg rounded-2xl p-6 border border-gray-100 h-full overflow-y-auto">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Uploaded File Previews</h2>
 
       {uploadedFiles.length === 0 && (
@@ -55,9 +55,9 @@ export default function RightPanel({ uploadedFiles, onDelete }: Props) {
             </div>
 
             <div className="space-y-3">
-              {files.map((item, i) => (
+              {files.map((item) => (
                 <div
-                  key={`${category}-${i}-${item.file.name}`}
+                  key={item.id}
                   className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border"
                 >
                   <div className="min-w-0">
@@ -80,7 +80,7 @@ export default function RightPanel({ uploadedFiles, onDelete }: Props) {
                     </button>
 
                     <button
-                      onClick={() => onDelete?.(i, category)}
+                      onClick={() => onDelete?.(item.id)}
                       className="inline-flex items-center gap-1 text-red-600 text-xs font-medium hover:underline"
                       type="button"
                       aria-label="Delete file"

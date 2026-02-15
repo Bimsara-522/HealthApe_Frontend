@@ -41,16 +41,23 @@ export default function MiddlePanel({
 
     fileArray.forEach((file) => {
       const tooBig = file.size > MAX_FILE_MB * 1024 * 1024;
-      const typeOk = ALLOWED_TYPES.includes(file.type as (typeof ALLOWED_TYPES)[number]);
+      const typeOk = ALLOWED_TYPES.includes(
+        file.type as (typeof ALLOWED_TYPES)[number]
+      );
 
-      if (!typeOk) newErrors.push(`Blocked: ${file.name} (type ${file.type || "unknown"} not allowed)`);
-      else if (tooBig) newErrors.push(`Blocked: ${file.name} (exceeds ${MAX_FILE_MB} MB)`);
+      if (!typeOk)
+        newErrors.push(
+          `Blocked: ${file.name} (type ${file.type || "unknown"} not allowed)`
+        );
+      else if (tooBig)
+        newErrors.push(`Blocked: ${file.name} (exceeds ${MAX_FILE_MB} MB)`);
       else accepted.push(file);
     });
 
     if (newErrors.length) setErrors((prev) => [...prev, ...newErrors]);
 
     const newFiles: UploadedFile[] = accepted.map((file) => ({
+      id: crypto.randomUUID(),
       file,
       category: inferCategory(file),
       createdAt: Date.now(),
@@ -98,12 +105,23 @@ export default function MiddlePanel({
             setIsDragging(false);
             handleFiles(e.dataTransfer.files);
           }}
-          className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all ${
-            isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white"
+          className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer ${
+            isDragging
+              ? "border-blue-500 bg-blue-50 scale-[1.02] shadow-md"
+              : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:shadow-sm"
           }`}
         >
-          <p className="text-gray-600 font-medium">Drag &amp; Drop medical files here</p>
-          <p className="text-sm text-gray-400 mt-2">or click below to browse</p>
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <div className="bg-blue-100 text-blue-600 p-4 rounded-full">
+              <PaperClipIcon className="h-6 w-6" />
+            </div>
+
+            <p className="text-gray-700 font-medium">Drag &amp; Drop medical files</p>
+
+            <p className="text-sm text-gray-400">
+              JPG, PNG, PDF up to {MAX_FILE_MB}MB
+            </p>
+          </div>
 
           <input
             type="file"
@@ -133,7 +151,7 @@ export default function MiddlePanel({
             type="date"
             value={formData.date ?? ""}
             onChange={handleChange}
-            className="border rounded-lg px-3 py-2"
+            className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
           />
         </div>
 
@@ -165,49 +183,49 @@ export default function MiddlePanel({
           value={formData.symptoms}
           onChange={handleChange}
           placeholder="Symptoms"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <input
           name="medications"
           value={formData.medications}
           onChange={handleChange}
           placeholder="Medications"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg_gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <input
           name="dosage"
           value={formData.dosage}
           onChange={handleChange}
           placeholder="Dosage"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <input
           name="frequency"
           value={formData.frequency}
           onChange={handleChange}
           placeholder="Frequency"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <input
           name="diagnosis"
           value={formData.diagnosis}
           onChange={handleChange}
           placeholder="Diagnosis"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <input
           name="doctorName"
           value={formData.doctorName}
           onChange={handleChange}
           placeholder="Doctor Name"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <input
           name="hospital"
           value={formData.hospital}
           onChange={handleChange}
           placeholder="Hospital / Clinic"
-          className="w-full border rounded-lg px-3 py-2"
+          className="w-full bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-2.5 transition"
         />
         <textarea
           name="notes"
@@ -221,7 +239,7 @@ export default function MiddlePanel({
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition font-medium disabled:opacity-60"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 font-medium disabled:opacity-60"
           type="button"
         >
           <CheckCircleIcon className="h-5 w-5" />

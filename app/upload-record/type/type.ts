@@ -2,6 +2,7 @@
 export type UploadCategory = "Prescription" | "Lab Result" | "Report" | "Other";
 
 export type UploadedFile = {
+  id: string;
   file: File;
   category: UploadCategory;
   createdAt?: number;
