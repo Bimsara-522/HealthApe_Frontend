@@ -1,29 +1,26 @@
-"use client";
+import LeftPanel from "./components/LeftPanel";
+import MiddlePanel from "./components/MiddlePanel";
+import RightPanel from "./components/RightPanel";
 
-import { useState } from "react";
-
-export default function UploadRecord() {
-  const [file, setFile] = useState<File | null>(null);
-
-  const handleUpload = () => {
-    if (!file) {
-      alert("Please select a file");
-      return;
-    }
-
-    console.log("Uploading:", file.name);
-  };
-
+export default function UploadMedicalFilesPage() {
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Upload Medical Record</h1>
+    <div className="grid grid-cols-12 min-h-screen bg-gray-100">
+      
+      {/* Left Navigation */}
+      <div className="col-span-2 bg-white border-r">
+        <LeftPanel />
+      </div>
 
-      <input
-        type="file"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-      />
+      {/* Middle Workspace */}
+      <div className="col-span-6 p-8">
+        <MiddlePanel />
+      </div>
 
-      <button onClick={handleUpload}>Upload</button>
+      {/* Right Preview */}
+      <div className="col-span-4 bg-white border-l p-6">
+        <RightPanel />
+      </div>
+
     </div>
   );
 }
