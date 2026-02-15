@@ -91,7 +91,33 @@ function WeeklyAdherenceCard() {
         <h2 className="text-lg font-semibold text-gray-900">Weekly Adherence</h2>
         <span className="text-green-600 font-medium">{adherencePercentage}% On Track</span>
       </div>
-      
+      <div className="flex items-center justify-between sm:justify-start sm:gap-8">
+        {weeklyAdherence.map((day, index) => (
+          <div key={index} className="flex flex-col items-center gap-2">
+            <div
+              className={cn(
+                'w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center',
+                day.completed
+                  ? 'bg-green-100'
+                  : 'bg-gray-100'
+              )}
+            >
+              {day.completed && (
+                <Check className="w-5 h-5 text-green-600" />
+              )}
+            </div>
+            
+            <span
+              className={cn(
+                'text-sm font-medium',
+                day.completed ? 'text-gray-900' : 'text-gray-400'
+              )}
+            >
+              {day.day}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
