@@ -81,6 +81,20 @@ function PageHeader() {
     </div>
   );
 }
+
+// WEEKLY ADHERENCE CARD
+
+function WeeklyAdherenceCard() {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold text-gray-900">Weekly Adherence</h2>
+        <span className="text-green-600 font-medium">{adherencePercentage}% On Track</span>
+      </div>
+      
+    </div>
+  );
+}
  
 // MAIN PAGE COMPONENT
  
@@ -88,6 +102,7 @@ export default function MedicationsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
+      <WeeklyAdherenceCard />
     </div>
   );
 }
