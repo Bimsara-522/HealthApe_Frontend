@@ -12,13 +12,13 @@ import React from 'react';
 // Import all dashboard components
 import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
 import { HealthMetricsGrid } from '@/components/dashboard/healthmetriccard';
-//import { RecentRecords } from '@/components/dashboard/RecentRecords';
+import { RecentRecords } from '@/components/dashboard/recentrecords';
 //import { UpcomingAppointment } from '@/components/dashboard/UpcomingAppointment';
 //import { MedicationsWidget } from '@/components/dashboard/MedicationsWidget';
 
 // Import types
 import type { HealthMetric } from '@/components/dashboard/healthmetriccard';
-//import type { MedicalRecord } from '@/components/dashboard/RecentRecords';
+import type { MedicalRecord } from '@/components/dashboard/recentrecords';
 //import type { Appointment } from '@/components/dashboard/UpcomingAppointment';
 //import type { Medication } from '@/components/dashboard/MedicationsWidget';
 
@@ -58,6 +58,30 @@ const healthMetrics: HealthMetric[] = [
   },
 ];
 
+const recentRecords: MedicalRecord[] = [
+  {
+    id: '1',
+    title: 'Blood Test Report',
+    date: 'Today',
+    time: '10:23 AM',
+    type: 'Lab Report',
+    tags: ['Blood', 'Routine'],
+  },
+  {
+    id: '2',
+    title: 'Cardiologist Prescription',
+    date: 'Yesterday',
+    type: 'Prescription',
+    tags: ['Heart', 'DrSmith'],
+  },
+  {
+    id: '3',
+    title: 'X-Ray Right Knee',
+    date: 'Oct 24, 2025',
+    type: 'Scan',
+    tags: ['Ortho'],
+  },
+];
 
 
 // ============================================
@@ -82,6 +106,19 @@ export default function DashboardPage() {
         <HealthMetricsGrid metrics={healthMetrics} />
       </section>
 
+      {/* ================================
+          ROW 3: MAIN CONTENT GRID
+          ================================
+          - Left (2/3): Recent Medical Records
+          - Right (1/3): Upcoming + Medications
+      */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column - Recent Records (takes 2 columns) */}
+        <div className="lg:col-span-2">
+          <RecentRecords records={recentRecords} />
+        </div>
+      </div>
     </div>
   );
 }
