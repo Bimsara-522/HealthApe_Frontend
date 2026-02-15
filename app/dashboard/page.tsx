@@ -14,13 +14,13 @@ import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
 import { HealthMetricsGrid } from '@/components/dashboard/healthmetriccard';
 import { RecentRecords } from '@/components/dashboard/recentrecords';
 import { UpcomingAppointment } from '@/components/dashboard/upcomingappointments';
-//import { MedicationsWidget } from '@/components/dashboard/MedicationsWidget';
+import { MedicationsWidget } from '@/components/dashboard/medicationswidget';
 
 // Import types
 import type { HealthMetric } from '@/components/dashboard/healthmetriccard';
 import type { MedicalRecord } from '@/components/dashboard/recentrecords';
 import type { Appointment } from '@/components/dashboard/upcomingappointments';
-//import type { Medication } from '@/components/dashboard/MedicationsWidget';
+import type { Medication } from '@/components/dashboard/medicationswidget';
 
 // ============================================
 // SAMPLE DATA (Matches your design exactly)
@@ -91,6 +91,23 @@ const upcomingAppointment: Appointment = {
   time: '9:00 AM',
 };
 
+const medications: Medication[] = [
+  {
+    id: '1',
+    name: 'Amoxicillin',
+    dosage: '500g',
+    schedule: 'Morning',
+    taken: true,   // Toggle is ON (green)
+  },
+  {
+    id: '2',
+    name: 'Vitamin B',
+    dosage: 'Evening',
+    schedule: 'Evening',
+    taken: false,  // Toggle is OFF (gray)
+  },
+];
+
 
 // ============================================
 // DASHBOARD PAGE COMPONENT
@@ -130,8 +147,9 @@ export default function DashboardPage() {
         {/* Right Column - Upcoming & Medications */}
         <div className="space-y-6">
           <UpcomingAppointment appointment={upcomingAppointment} />
+          <MedicationsWidget medications={medications} />
         </div>
-
+        
       </div>
     </div>
   );
