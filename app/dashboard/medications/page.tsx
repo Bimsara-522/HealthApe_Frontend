@@ -121,6 +121,14 @@ function WeeklyAdherenceCard() {
     </div>
   );
 }
+
+
+// MEDICATION CARD COMPONENT
+
+interface MedicationCardProps {
+  medication: Medication;
+}
+
  
 // MAIN PAGE COMPONENT
  
