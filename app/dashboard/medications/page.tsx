@@ -129,6 +129,17 @@ interface MedicationCardProps {
   medication: Medication;
 }
 
+function MedicationCard({ medication }: MedicationCardProps) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer">
+      <div className="flex items-center gap-4">
+        <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+          <Pill className="w-6 h-6 text-purple-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
  
 // MAIN PAGE COMPONENT
  
