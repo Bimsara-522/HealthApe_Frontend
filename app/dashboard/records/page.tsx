@@ -343,13 +343,31 @@ export default function MedicalRecordsPage() {
       </div>
         
       {/*Record Cards*/}
-      
-      {/*Checking the page works */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-         <p className="text-gray-500">
-          Showing {filteredRecords.length} of {sampleRecords.length} records
-          {selectedFilter && ` (filtered by: ${selectedFilter})`}
-        </p>
+      <div className="space-y-4">
+        {filteredRecords.length > 0 ? (
+          filteredRecords.map((record, index) => (
+            <RecordCard
+              key={record.id}
+              record={record}
+              isFirst={index === 0}
+              onViewDetails={handleViewDetails}
+            />
+          ))
+        ) : (
+          //Empty state when no records match
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No records found
+            </h3>
+            <p className="text-gray-500">
+              {searchQuery || selectedFilter
+                ? 'Try adjusting your search or filter'
+                : 'Upload your first medical record to get started'
+              }
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
