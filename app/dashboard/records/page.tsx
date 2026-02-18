@@ -202,6 +202,12 @@ export default function MedicalRecordsPage() {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const router = useRouter();
 
+  //Handler
+  //Navigate to upload page
+  const handleAddRecord = () => {
+    router.push('/dashboard/upload');
+  };
+
   //filtered records based on search query
    const filteredRecords = sampleRecords.filter((record) => {
     // Check search query
@@ -240,7 +246,7 @@ export default function MedicalRecordsPage() {
           onSelectFilter={setSelectedFilter}
         />
         {/* Add Record Button */}
-        <AddRecordButton onClick={() => router.push('/dashboard/records/new')} />
+        <AddRecordButton onClick={handleAddRecord} />
       </div>
         
       {/*Record Cards*/}
