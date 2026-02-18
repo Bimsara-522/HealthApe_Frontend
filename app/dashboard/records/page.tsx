@@ -231,7 +231,7 @@ function RecordCard({ record, isFirst, onViewDetails }: RecordCardProps) {
         'flex items-center gap-4',
         'transition-all duration-200',
         'hover:shadow-md',
-        // First card has blue left border (like your design)
+        'group',
         isFirst 
           ? 'border-l-4 border-l-blue-500 border-t-gray-100 border-r-gray-100 border-b-gray-100' 
           : 'border-gray-100'
@@ -268,15 +268,21 @@ function RecordCard({ record, isFirst, onViewDetails }: RecordCardProps) {
         </div>
       </div>
 
-      {/* View Details Button - Only show on first card (or we can show on all) */}
-      {isFirst && (
-        <button
-          onClick={() => onViewDetails(record.id)}
-          className="flex-shrink-0 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-        >
-          View Details
-        </button>
-      )}
+      {/* View Details Button - Always visible on first, hover on others */}
+      <button
+        onClick={() => onViewDetails(record.id)}
+        className={cn(
+          'flex-shrink-0 px-4 py-2 text-sm font-medium',
+          'text-blue-600 border border-blue-600 rounded-lg',
+          'hover:bg-blue-50 transition-all duration-200',
+          //Show always on first card, show on hover for others
+          isFirst 
+            ? 'opacity-100' 
+            : 'opacity-0 group-hover:opacity-100'
+        )}
+      >
+        View Details
+      </button>
     </div>
   );
 }
