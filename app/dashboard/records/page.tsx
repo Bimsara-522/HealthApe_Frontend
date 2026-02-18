@@ -5,8 +5,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import{Search} from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
 
 //type definitions
 interface MedicalRecord {
@@ -89,25 +90,117 @@ function SearchBar({ value, onChange }: SearchBarProps) {
   );
 }
 
+
+
+// FILTER DROPDOWN COMPONENT
+// ============================================
+
+interface FilterDropdownProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  selectedFilter: string | null;
+  onSelectFilter: (filter: string | null) => void;
+}
+
+function FilterDropdown({ 
+  isOpen, 
+  onToggle, 
+  selectedFilter, 
+  onSelectFilter 
+}: FilterDropdownProps) {
+  // Filter options matching your design
+  const filterOptions = ['LAB REPORT', 'IMAGING', 'REFERRAL', 'PRESCRIPTION'];
+
+  return (
+    <div className="relative">
+      {/* Filter Button */}
+      <button
+        onClick={onToggle}
+        className={cn(
+          'flex items-center gap-2 px-6 py-3',
+          'bg-white border border-gray-200 rounded-xl',
+          'text-gray-700 font-medium',
+          'hover:bg-gray-50 transition-colors',
+          'min-w-[120px] justify-center'
+        )}
+      >
+        <span>Filter</span>
+        <ChevronDown 
+          className={cn(
+            'w-4 h-4 transition-transform duration-200',
+            isOpen && 'rotate-180'  // Rotate arrow when open
+          )} 
+        />
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-20">
+          
+          {/* "All Records" option */}
+          <button
+            onClick={() => {
+              onSelectFilter(null);  // null = no filter
+              onToggle();            // Close dropdown
+            }}
+            className={cn(
+              'w-full px-4 py-2 text-left text-sm',
+              'hover:bg-gray-50 transition-colors',
+              selectedFilter === null && 'text-blue-600 font-medium bg-blue-50'
+            )}
+          >
+            All Records
+          </button>
+          
+          {/* Filter options */}
+          {filterOptions.map((option) => (
+            <button
+              key={option}
+              onClick={() => {
+                onSelectFilter(option);
+                onToggle();
+              }}
+              className={cn(
+                'w-full px-4 py-2 text-left text-sm',
+                'hover:bg-gray-50 transition-colors',
+                selectedFilter === option && 'text-blue-600 font-medium bg-blue-50'
+              )}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
+
 //Main page component
 export default function MedicalRecordsPage() {
   //state
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   //filtered records based on search query
-  const filteredRecords = sampleRecords.filter((record) => {
-    //If no search query show all records
-    if (searchQuery === '') return true;
+   const filteredRecords = sampleRecords.filter((record) => {
+    // Check search query
+    const matchesSearch = 
+      searchQuery === '' ||
+      record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    //Convert search to lowercase for case-insensitive search
-    const query = searchQuery.toLowerCase();
+    // Check type filter
+    const matchesFilter = 
+      selectedFilter === null || 
+      record.type === selectedFilter;
     
-    //Check if query matches title, doctor name, or any tag
-    return (
-      record.title.toLowerCase().includes(query) ||
-      record.doctorName.toLowerCase().includes(query) ||
-      record.tags.some(tag => tag.toLowerCase().includes(query))
-    );
+    // Must match BOTH search AND filter
+    return matchesSearch && matchesFilter;
   });
 
 
@@ -122,14 +215,24 @@ export default function MedicalRecordsPage() {
           onChange={setSearchQuery} 
         />
         
-        {/* Filter and Add Button */}
+        {/* Filter dropdown*/}
+        <FilterDropdown
+          isOpen={isFilterOpen}
+          onToggle={() => setIsFilterOpen(!isFilterOpen)}
+          selectedFilter={selectedFilter}
+          onSelectFilter={setSelectedFilter}
+        />
+        {/* Add Record Button */}
       </div>
         
       {/*Record Cards*/}
       
       {/*Checking the page works */}
       <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-        <h2 className="text-xl font-semibold text-gray-900">Medical Records Page</h2>
+         <p className="text-gray-500">
+          Showing {filteredRecords.length} of {sampleRecords.length} records
+          {selectedFilter && ` (filtered by: ${selectedFilter})`}
+        </p>
       </div>
     </div>
   );
