@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown, Plus } from 'lucide-react';
+import { Search, ChevronDown, Plus, Activity, User, Pill, FileText  } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/UI/button';
 
@@ -57,6 +57,24 @@ const sampleRecords: MedicalRecord[] = [
     tags: ['Infection', 'Meds'],
   },
 ];
+
+//Helper function to get icon based on record type
+
+function getRecordIcon(type: MedicalRecord['type']) {
+  
+  switch (type) {
+    case 'LAB REPORT':
+      return Activity;
+    case 'IMAGING':
+      return User;
+    case 'REFERRAL':
+      return FileText;
+    case 'PRESCRIPTION':
+      return Pill;
+    default:
+      return FileText;
+  }
+}
 
 
 // SEARCH BAR COMPONENT
@@ -190,6 +208,76 @@ function AddRecordButton({ onClick }: AddRecordButtonProps) {
       <Plus className="w-5 h-5" />
       <span>Add Record</span>
     </Button>
+  );
+}
+
+//Record card component
+
+interface RecordCardProps {
+  record: MedicalRecord;
+  isFirst: boolean;
+  onViewDetails: (id: string) => void;
+}
+
+function RecordCard({ record, isFirst, onViewDetails }: RecordCardProps) {
+  // Get the icon component based on record type
+  const IconComponent = getRecordIcon(record.type);
+  
+  return (
+    <div 
+      className={cn(
+        // Base styles
+        'bg-white rounded-2xl border p-5',
+        'flex items-center gap-4',
+        'transition-all duration-200',
+        'hover:shadow-md',
+        // First card has blue left border (like your design)
+        isFirst 
+          ? 'border-l-4 border-l-blue-500 border-t-gray-100 border-r-gray-100 border-b-gray-100' 
+          : 'border-gray-100'
+      )}
+    >
+      {/* Icon */}
+      <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center">
+        <IconComponent className="w-6 h-6 text-blue-500" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        {/* Title */}
+        <h3 className="font-semibold text-gray-900">{record.title}</h3>
+        
+        {/* Date and Doctor */}
+        <p className="text-sm text-gray-500 mt-0.5">
+          {record.date} | {record.doctorName}
+        </p>
+        
+        {/* Type Badge + Tags */}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {/* Type Badge */}
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 uppercase">
+            {record.type}
+          </span>
+          
+          {/* Tags */}
+          {record.tags.map((tag) => (
+            <span key={tag} className="text-sm text-blue-600 font-medium">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* View Details Button - Only show on first card (or we can show on all) */}
+      {isFirst && (
+        <button
+          onClick={() => onViewDetails(record.id)}
+          className="flex-shrink-0 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+        >
+          View Details
+        </button>
+      )}
+    </div>
   );
 }
 
