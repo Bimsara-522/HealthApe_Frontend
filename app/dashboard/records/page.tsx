@@ -5,8 +5,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/UI/button';
 
 
 //type definitions
@@ -93,7 +94,6 @@ function SearchBar({ value, onChange }: SearchBarProps) {
 
 
 // FILTER DROPDOWN COMPONENT
-// ============================================
 
 interface FilterDropdownProps {
   isOpen: boolean;
@@ -175,7 +175,23 @@ function FilterDropdown({
   );
 }
 
+//Add record button component
+interface AddRecordButtonProps {
+  onClick: () => void;
+}
 
+function AddRecordButton({ onClick }: AddRecordButtonProps) {
+  return (
+    <Button 
+      variant="primary" 
+      onClick={onClick}
+      className="flex items-center gap-2 whitespace-nowrap"
+    >
+      <Plus className="w-5 h-5" />
+      <span>Add Record</span>
+    </Button>
+  );
+}
 
 
 //Main page component
@@ -184,6 +200,7 @@ export default function MedicalRecordsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const router = useRouter();
 
   //filtered records based on search query
    const filteredRecords = sampleRecords.filter((record) => {
@@ -194,12 +211,12 @@ export default function MedicalRecordsPage() {
       record.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       record.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    // Check type filter
+    //Check type filter
     const matchesFilter = 
       selectedFilter === null || 
       record.type === selectedFilter;
     
-    // Must match BOTH search AND filter
+    //Must match BOTH search AND filter
     return matchesSearch && matchesFilter;
   });
 
@@ -223,6 +240,7 @@ export default function MedicalRecordsPage() {
           onSelectFilter={setSelectedFilter}
         />
         {/* Add Record Button */}
+        <AddRecordButton onClick={() => router.push('/dashboard/records/new')} />
       </div>
         
       {/*Record Cards*/}
