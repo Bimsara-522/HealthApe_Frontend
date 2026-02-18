@@ -154,6 +154,12 @@ export default function MedicationsPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
       <WeeklyAdherenceCard />
+
+      <div className="space-y-4">
+        {medications.map((medication) => (
+          <MedicationCard key={medication.id} medication={medication} />
+        ))}
+      </div>
     </div>
   );
 }
