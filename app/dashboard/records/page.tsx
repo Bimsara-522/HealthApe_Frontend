@@ -78,7 +78,7 @@ function getRecordIcon(type: MedicalRecord['type']) {
 }
 
 
-// SEARCH BAR COMPONENT
+//Search bar component
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -112,7 +112,7 @@ function SearchBar({ value, onChange }: SearchBarProps) {
 
 
 
-// FILTER DROPDOWN COMPONENT
+//Filter dropdown component
 interface FilterDropdownProps {
   isOpen: boolean;
   onToggle: () => void;
