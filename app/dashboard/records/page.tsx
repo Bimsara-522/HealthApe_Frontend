@@ -61,6 +61,7 @@ const sampleRecords: MedicalRecord[] = [
 //Helper function to get icon based on record type
 
 function getRecordIcon(type: MedicalRecord['type']) {
+
   
   switch (type) {
     case 'LAB REPORT':
@@ -112,7 +113,6 @@ function SearchBar({ value, onChange }: SearchBarProps) {
 
 
 // FILTER DROPDOWN COMPONENT
-
 interface FilterDropdownProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -294,6 +294,11 @@ export default function MedicalRecordsPage() {
   //Navigate to upload page
   const handleAddRecord = () => {
     router.push('/dashboard/upload');
+  };
+
+  //Navigate to record details page
+  const handleViewDetails = (recordId: string) => {
+    router.push(`/dashboard/records/${recordId}`);
   };
 
   //filtered records based on search query
