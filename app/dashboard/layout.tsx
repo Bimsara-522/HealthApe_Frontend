@@ -1,9 +1,6 @@
-// app/dashboard/layout.tsx
-// ============================================
-// DASHBOARD LAYOUT
-// ============================================
-// This layout wraps ALL pages inside /dashboard
-// It provides the sidebar and header
+
+//DASHBOARD LAYOUT
+//It provides the sidebar and header
 
 'use client';
 
@@ -11,14 +8,14 @@ import React, { useState } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
 
-// Props interface
+//Props interface
 interface DashboardLayoutProps {
-  children: React.ReactNode;  // The page content
+  children: React.ReactNode;  //The page content
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  // State to control sidebar visibility on mobile
-  // useState(false) means sidebar starts closed on mobile
+  //State to control sidebar visibility on mobile
+  //useState(false) means sidebar starts closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

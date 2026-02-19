@@ -1,20 +1,13 @@
-// components/dashboard/RecentRecords.tsx
-// ============================================
-// RECENT RECORDS COMPONENT
-// ============================================
-// Shows list of recent medical documents:
-// - Blood Test Report
-// - Cardiologist Prescription
-// - X-Ray Right Knee
+
+//RecentRecords Component
+//It shows a list of recently uploaded medical records
 
 import React from 'react';
 import Link from 'next/link';
 import { FileText, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/UI/badge';
 
-// ============================================
-// TYPE DEFINITION
-// ============================================
+//Type definition
 export interface MedicalRecord {
   id: string;
   title: string;      // "Blood Test Report"
@@ -24,9 +17,8 @@ export interface MedicalRecord {
   tags: string[];     // ["Blood", "Routine"]
 }
 
-// ============================================
-// SINGLE RECORD ITEM
-// ============================================
+
+//Single record item
 interface RecordItemProps {
   record: MedicalRecord;
 }
@@ -66,9 +58,8 @@ function RecordItem({ record }: RecordItemProps) {
   );
 }
 
-// ============================================
-// RECENT RECORDS CONTAINER
-// ============================================
+
+//RecentRecords container
 interface RecentRecordsProps {
   records: MedicalRecord[];
 }

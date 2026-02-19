@@ -1,19 +1,12 @@
-// components/dashboard/UpcomingAppointment.tsx
-// ============================================
-// UPCOMING APPOINTMENT COMPONENT
-// ============================================
-// Shows next appointment with:
-// - Date box (DEC 16)
-// - Doctor name and specialty
-// - Reschedule / Details buttons
 
+//UpcomingAppointments component
+//Shows the next appointment with doctor 
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/UI/button';
 
-// ============================================
+
 // TYPE DEFINITION
-// ============================================
 export interface Appointment {
   id: string;
   doctorName: string;    // "Dr. Sarah Conner"
@@ -22,13 +15,13 @@ export interface Appointment {
   time: string;          // "9:00 AM"
 }
 
-// Props interface
+//Props interface
 interface UpcomingAppointmentProps {
   appointment: Appointment | null;
 }
 
 export function UpcomingAppointment({ appointment }: UpcomingAppointmentProps) {
-  // If no appointment, show empty state
+  //If no appointment, show empty state
   if (!appointment) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-4">
@@ -46,7 +39,7 @@ export function UpcomingAppointment({ appointment }: UpcomingAppointmentProps) {
     );
   }
 
-  // Format the date
+  //Format the date
   const month = appointment.date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
   const day = appointment.date.getDate();
 

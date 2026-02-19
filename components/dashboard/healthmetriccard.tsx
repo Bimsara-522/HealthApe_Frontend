@@ -1,39 +1,30 @@
-// components/dashboard/HealthMetricCard.tsx
-// ============================================
-// HEALTH METRIC CARD COMPONENT
-// ============================================
-// Shows vital statistics like:
-// - Heart Rate: 72 bpm (Normal)
-// - Blood Pressure: 120/80 (Normal)
-// - Glucose: 95 mg/dL (Optimal)
-// - Weight: 78 kg (-2 kg)
+
+//Health Metric Card Component
+//It displays a single health metric like heart rate, blood pressure, etc.
 
 import React from 'react';
 import { Activity } from 'lucide-react';
 import { Badge } from '@/components/UI/badge';
 
-// ============================================
-// TYPE DEFINITION
-// ============================================
-// Defines the shape of health metric data
+
+//Types defining the shape of health metric data
 export interface HealthMetric {
   id: string;
-  label: string;      // "Heart Rate"
-  value: string;      // "72"
-  unit?: string;      // "bpm" (optional)
+  label: string;      //"Heart Rate"
+  value: string;      //"72"
+  unit?: string;      //"bpm" (optional)
   status: 'normal' | 'optimal' | 'warning' | 'critical';
   change?: string;    // "-2 kg" (optional - for weight changes)
 }
 
-// ============================================
-// SINGLE METRIC CARD
-// ============================================
+
+//Single metric card 
 interface HealthMetricCardProps {
   metric: HealthMetric;
 }
 
 export function HealthMetricCard({ metric }: HealthMetricCardProps) {
-  // Map status to badge variant and label
+  //Map status to badge variant and label
   const statusConfig = {
     normal: { label: 'Normal', variant: 'info' as const },
     optimal: { label: 'Optimal', variant: 'success' as const },
@@ -71,17 +62,16 @@ export function HealthMetricCard({ metric }: HealthMetricCardProps) {
   );
 }
 
-// ============================================
+
 // METRICS GRID - Horizontal row of cards
-// ============================================
 interface HealthMetricsGridProps {
   metrics: HealthMetric[];
 }
 
 export function HealthMetricsGrid({ metrics }: HealthMetricsGridProps) {
   return (
-    // Horizontal scroll container
-    // scrollbar-hide hides the scrollbar but keeps scroll functionality
+    //Horizontal scroll container
+    //scrollbar-hide hides the scrollbar but keeps scroll functionality
     <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
       {metrics.map((metric) => (
         <HealthMetricCard key={metric.id} metric={metric} />
