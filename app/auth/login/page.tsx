@@ -20,7 +20,7 @@ export default function LoginPage() {
     const handleLogin = async (data: signInForm) => {
         try{
             await api.post('/auth/login', data);
-            setMessage('Login successful!');
+            setMessage('Login successful!!!');
             setTimeout(() => router.push('/dashboard'), 1500);
         }catch(error: unknown){
             setMessage('Login failed. Please check your credentials and try again.');
