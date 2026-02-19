@@ -16,7 +16,7 @@ export default function RegisterPage() {
 
   return (
     <form onSubmit={handleSignUp}>
-        <main className="min-h-screen flex items-center justify-center">
+        <main className="min-h-screen flex items-center justify-center"  style={{ background: "white", color: "black" }}>
             <div className="flex bg-[#0F52BA] rounded-lg p-8 max-w-4xl w-full">
 
                 {/* Left side – Image */}
