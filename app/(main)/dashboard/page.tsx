@@ -1,9 +1,5 @@
-// app/dashboard/page.tsx
-// ============================================
-// MAIN DASHBOARD PAGE
-// ============================================
-// This is the content shown at /dashboard
-// It combines all the dashboard components
+
+//Main Dashboard Page
 
 'use client';
 
@@ -22,11 +18,8 @@ import type { MedicalRecord } from '@/components/dashboard/recentrecords';
 import type { Appointment } from '@/components/dashboard/upcomingappointments';
 import type { Medication } from '@/components/dashboard/medicationswidget';
 
-// ============================================
-// SAMPLE DATA (Matches your design exactly)
-// ============================================
-// In a real app, this data would come from your backend API
 
+//Sample data for the dashboard (replace with real API data in production)
 const healthMetrics: HealthMetric[] = [
   {
     id: '1',
@@ -87,7 +80,7 @@ const upcomingAppointment: Appointment = {
   id: '1',
   doctorName: 'Dr. Sarah Conner',
   specialty: 'Cardiologist',
-  date: new Date(2025, 11, 16),  // December 16, 2025
+  date: new Date(2025, 11, 16), 
   time: '9:00 AM',
 };
 
@@ -97,46 +90,37 @@ const medications: Medication[] = [
     name: 'Amoxicillin',
     dosage: '500g',
     schedule: 'Morning',
-    taken: true,   // Toggle is ON (green)
+    taken: true,   //Toggle is on (green)
   },
   {
     id: '2',
     name: 'Vitamin B',
     dosage: 'Evening',
     schedule: 'Evening',
-    taken: false,  // Toggle is OFF (gray)
+    taken: false,  //Toggle is OFF (gray)
   },
 ];
 
 
-// ============================================
-// DASHBOARD PAGE COMPONENT
-// ============================================
+
+//Dashboard page component
+
 export default function DashboardPage() {
   return (
     // Main container with vertical spacing between sections
     <div className="space-y-6 animate-fade-in">
       
-      {/* ================================
-          ROW 1: WELCOME BANNER
-          ================================ */}
+      {/* ROW 1: Welcome Banner */}
       <WelcomeBanner 
         userName="John" 
         upcomingAppointments={1} 
       />
-      {/* ================================
-          ROW 2: HEALTH METRICS
-          ================================ */}
+      {/* ROW 2: Health Metrics */}
       <section>
         <HealthMetricsGrid metrics={healthMetrics} />
       </section>
 
-      {/* ================================
-          ROW 3: MAIN CONTENT GRID
-          ================================
-          - Left (2/3): Recent Medical Records
-          - Right (1/3): Upcoming + Medications
-      */}
+      {/* ROW 3: Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column - Recent Records (takes 2 columns) */}

@@ -1,12 +1,6 @@
-// components/dashboard/WelcomeBanner.tsx
-// ============================================
-// WELCOME BANNER COMPONENT
-// ============================================
-// Blue gradient card showing:
-// - "Good Morning, John! 👋"
-// - Upcoming appointments count
-// - Quick Upload button
 
+//WelcomeBanner component
+//Shows greeting, upcoming appointments, and quick upload button
 'use client';
 
 import React from 'react';
@@ -14,7 +8,7 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { getGreeting } from '@/lib/utils';
 
-// Props interface
+//Props interface
 interface WelcomeBannerProps {
   userName: string;
   upcomingAppointments?: number;
@@ -24,14 +18,13 @@ export function WelcomeBanner({
   userName, 
   upcomingAppointments = 0 
 }: WelcomeBannerProps) {
-  // Get time-based greeting from our utility function
+  //Get time-based greeting from our utility function
   const greeting = getGreeting();
 
   return (
     <div 
       className="relative overflow-hidden rounded-2xl p-6 text-white"
-      // Inline style for the gradient background
-      // (matches your design: blue gradient from left to right)
+      //Inline style for the gradient background
       style={{
         background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
       }}
