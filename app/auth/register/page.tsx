@@ -2,21 +2,34 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
+import api from "@/lib/api";
+
+type signUpForm = {
+    fullName: string;
+    email: string;
+    password: string;
+}
 
 export default function RegisterPage() {
 
+    const {register, handleSubmit} = useForm<signUpForm>();
+    const [message, setMessage] = useState('');
     const router = useRouter();
-    const handleSignUp = (e: React.FormEvent) => {
-        e.preventDefault(); //stops reloading the page
-        // TODO: call backend API here
-        // await fetch("/api/register", { ... })
-        // If signup is successful:
-        router.push("/auth/login");
+    const handleSignUp = async (data: signUpForm) => {
+        try {
+            await api.post('/auth/signup', data);
+            setMessage('Registration successful! Redirecting to login...');
+            setTimeout(() => router.push('/auth/login'), 2000);
+        } catch (error: unknown) {
+            setMessage('Registration failed. Please try again.');
+        }
     };
 
   return (
-    <form onSubmit={handleSignUp}>
-        <main className="min-h-screen flex items-center justify-center"  style={{ background: "white", color: "black" }}>
+    <main className="min-h-screen flex items-center justify-center">
+        <form onSubmit={handleSubmit(handleSignUp)}>
             <div className="flex bg-[#0F52BA] rounded-lg p-8 max-w-4xl w-full">
 
                 {/* Left side – Image */}
@@ -45,6 +58,7 @@ export default function RegisterPage() {
                         <div className="mb-4">
                             <label className="block text-sm text-blue-600 mb-1">Full Name</label>
                             <input
+                                {...register('fullName', { required: true })}
                                 type="text"
                                 placeholder="John Doe"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -55,6 +69,7 @@ export default function RegisterPage() {
                         <div className="mb-4">
                             <label className="block text-sm text-blue-600 mb-1">Email</label>
                             <input
+                                {...register('email', { required: true })}
                                 type="email"
                                 placeholder="johndoe@gmail.com"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -65,6 +80,7 @@ export default function RegisterPage() {
                         <div className="mb-6">
                             <label className="block text-sm text-blue-600 mb-1">Password</label>
                             <input
+                                {...register('password', { required: true })}
                                 type="password"
                                 placeholder="••••••••"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -84,7 +100,8 @@ export default function RegisterPage() {
                     </div> 
                 </div>
             </div>
-        </main>
-    </form>
+            {message && <p className="mt-4 text-center text-red-600">{message}</p>}
+        </form>
+    </main>
   );
 }

@@ -1,25 +1,39 @@
 "use client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useForm } from 'react-hook-form';
+import api from "@/lib/api";
+import { useState } from "react";
 import Link from "next/link";
+
+type signInForm = {
+    email: string;
+    password: string;
+}
 
 export default function LoginPage() {
   
+    const {register, handleSubmit} = useForm<signInForm>();
+    const [message, setMessage] = useState('');
+  
     const router = useRouter();
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault(); //stops reloading the page
-        // TODO: call login API
-        // const response = await fetch("/api/login");
-        // const loginSuccess = response.ok;
-        const loginSuccess = true; // replace with a real API call
-        if (loginSuccess) {
-            router.push("/dashboard");
+    const handleLogin = async (data: signInForm) => {
+        try{
+            await api.post('/auth/login', data);
+            setMessage('Login successful!');
+            setTimeout(() => router.push('/dashboard'), 1500);
+        }catch(error: unknown){
+            setMessage('Login failed. Please check your credentials and try again.');
+        // const loginSuccess = true;
+        // if (loginSuccess) {
+        //     router.push("/dashboard");
+        // }
         }
     }; 
     
   return (
-    <form onSubmit={handleLogin}>
-        <main className="min-h-screen flex items-center justify-center" style={{ background: "white", color: "black" }}>
+    <main className="min-h-screen flex items-center justify-center">
+        <form onSubmit={handleSubmit(handleLogin)} className="min-h-screen flex items-center justify-center">
             <div className="flex bg-[#0F52BA] rounded-lg p-8 max-w-4xl w-full">
 
                 {/* Left side – Image */}
@@ -48,6 +62,7 @@ export default function LoginPage() {
                         <div className="mb-4">
                             <label className="block text-sm text-blue-600 mb-1">Email</label>
                             <input
+                                {...register('email', { required: true })}
                                 type="email"
                                 placeholder="johndoe@gmail.com"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -58,6 +73,7 @@ export default function LoginPage() {
                         <div className="mb-6">
                             <label className="block text-sm text-blue-600 mb-1">Password</label>
                             <input
+                                {...register('password', { required: true })}
                                 type="password"
                                 placeholder="••••••••"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -81,7 +97,8 @@ export default function LoginPage() {
                     </div> 
                 </div>
             </div>
-        </main>
-    </form>
+            {message && <p className="mt-4 text-center text-red-600">{message}</p>}
+        </form>
+    </main>
   );
 }
