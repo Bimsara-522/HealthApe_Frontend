@@ -10,7 +10,7 @@ import { CalendarSkeleton } from './loading'
 
 export default async function AppointmentsPage() {
   // Fetch on the server — no loading spinner for initial render
-  const appointments = await getAppointments()
+  const appointments = await getAppointments({ month: undefined })
 
   const nextVisit = appointments
     .filter(a => new Date(a.date) > new Date())
