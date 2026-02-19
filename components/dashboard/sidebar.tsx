@@ -1,9 +1,6 @@
-// components/dashboard/Sidebar.tsx
-// ============================================
-// SIDEBAR COMPONENT
-// ============================================
-// Left navigation with HealthApe logo and menu items
-// Responsive: slides in/out on mobile, always visible on desktop
+
+//Sidebar Component
+//It provides navigation links to different sections of the dashboard
 
 'use client';
 
@@ -27,10 +24,9 @@ import {
   LogOut,         // Log Out
 } from 'lucide-react';
 
-// ============================================
-// NAVIGATION MENU ITEMS
-// ============================================
-// Array of objects - each defines a menu item
+
+//Navigation items for the sidebar menu
+//Array of objects - each defines a menu item
 const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Activity },
   { name: 'Upload Files', href: '/dashboard/upload', icon: Upload },
@@ -42,27 +38,24 @@ const navigationItems = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
-// ============================================
-// PROPS INTERFACE
-// ============================================
+
+//Props interface
 interface SidebarProps {
-  isOpen: boolean;      // Is sidebar visible on mobile?
-  onClose: () => void;  // Function to close sidebar
+  isOpen: boolean;      //Is sidebar visible on mobile?
+  onClose: () => void;  //Function to close sidebar
 }
 
-// ============================================
-// SIDEBAR COMPONENT
-// ============================================
+
+//Sidebar component
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  // usePathname() gives us the current URL path
-  // We use this to highlight the active menu item
+  //usePathname() gives us the current URL path
+  //We use this to highlight the active menu item
   const pathname = usePathname();
 
   return (
     <>
-      {/* ================================
+      {/* 
           OVERLAY (Mobile only)
-          ================================
           Dark background that appears behind sidebar on mobile
           Clicking it closes the sidebar
       */}
@@ -74,26 +67,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         />
       )}
 
-      {/* ================================
-          SIDEBAR CONTAINER
-          ================================ */}
+      {/* SIDEBAR CONTAINER */}
       <aside
         className={cn(
-          // Base styles
+          //Base styles
           'fixed top-0 left-0 z-50 h-full w-[260px]',
           'bg-white border-r border-gray-200',
           'flex flex-col',
-          // Animation for sliding in/out
+          //Animation for sliding in/out
           'transition-transform duration-300 ease-in-out',
-          // Desktop: always visible (translate-x-0 = normal position)
+          //Desktop: always visible (translate-x-0 = normal position)
           'lg:translate-x-0',
-          // Mobile: slide based on isOpen state
+          //Mobile: slide based on isOpen state
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* ================================
-            LOGO SECTION
-            ================================ */}
+        {/* LOGO SECTION*/}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
           {/* Logo circle with monkey emoji */}
           <div className="w-10 h-10 relative">
@@ -110,9 +99,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <span className="text-xl font-bold text-blue-600">HealthApe</span>
         </div>
 
-        {/* ================================
-            NAVIGATION MENU
-            ================================ */}
+        {/* NAVIGATION MENU */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <ul className="space-y-1">
             {/* Loop through each navigation item */}
@@ -156,9 +143,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* ================================
-            LOGOUT BUTTON (Bottom)
-            ================================ */}
+        {/* LOGOUT BUTTON (Bottom) */}
         <div className="px-4 py-4 border-t border-gray-100">
           <button
             onClick={() => {

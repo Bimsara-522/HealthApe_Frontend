@@ -1,10 +1,6 @@
-// components/dashboard/MedicationsWidget.tsx
-// ============================================
-// MEDICATIONS WIDGET COMPONENT
-// ============================================
-// Shows today's medications with toggle switches:
-// - Amoxicillin (500g) - ON (taken)
-// - Vitamin B (Evening) - OFF (not taken)
+
+//Medications Widget Component
+//It shows today's medications with toggles to mark as taken/not taken
 
 'use client';
 
@@ -12,9 +8,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-// ============================================
-// TYPE DEFINITION
-// ============================================
+//Type definition
 export interface Medication {
   id: string;
   name: string;       // "Amoxicillin"
@@ -23,9 +17,8 @@ export interface Medication {
   taken: boolean;     // Has it been taken?
 }
 
-// ============================================
-// SINGLE MEDICATION ITEM
-// ============================================
+
+//Single medication item
 interface MedicationItemProps {
   medication: Medication;
   onToggle: (id: string) => void;
@@ -74,28 +67,27 @@ function MedicationItem({ medication, onToggle }: MedicationItemProps) {
   );
 }
 
-// ============================================
-// MEDICATIONS WIDGET CONTAINER
-// ============================================
+
+//Medication widget container
 interface MedicationsWidgetProps {
   medications: Medication[];
 }
 
 export function MedicationsWidget({ medications: initialMedications }: MedicationsWidgetProps) {
-  // useState hook - allows component to "remember" state
-  // When we call setMedications, the component re-renders with new data
+  //useState hook - allows component to "remember" state
+  //When we call setMedications, the component re-renders with new data
   const [medications, setMedications] = useState(initialMedications);
 
-  // Calculate how many medications haven't been taken yet
+  //Calculate how many medications haven't been taken yet
   const remaining = medications.filter(m => !m.taken).length;
 
-  // Handle toggle click
+  //Handle toggle click
   const handleToggle = (id: string) => {
     setMedications(prev => 
       prev.map(med => 
         med.id === id 
-          ? { ...med, taken: !med.taken }  // Toggle this medication
-          : med                             // Keep others unchanged
+          ? { ...med, taken: !med.taken }  //Toggle this medication
+          : med                            //Keep others unchanged
       )
     );
   };
