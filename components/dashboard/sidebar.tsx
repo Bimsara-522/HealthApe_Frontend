@@ -29,13 +29,13 @@ import {
 //Array of objects - each defines a menu item
 const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Activity },
-  { name: 'Upload Files', href: '/dashboard/upload', icon: Upload },
-  { name: 'Medical Records', href: '/dashboard/records', icon: FileText },
-  { name: 'Medications', href: '/dashboard/medications', icon: Pill },
-  { name: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
-  { name: 'AI Assistant', href: '/dashboard/chat', icon: MessageSquare },
-  { name: 'Insights', href: '/dashboard/insights', icon: Sparkles },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Upload Files', href: '/upload', icon: Upload },
+  { name: 'Medical Records', href: '/records', icon: FileText },
+  { name: 'Medications', href: '/medications', icon: Pill },
+  { name: 'Appointments', href: '/appointments', icon: Calendar },
+  { name: 'AI Assistant', href: '/ai-assistant', icon: MessageSquare },
+  { name: 'Insights', href: '/insights', icon: Sparkles },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 
