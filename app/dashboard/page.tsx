@@ -5,18 +5,18 @@
 
 import React from 'react';
 
-//Import all dashboard components
-import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner';
-import { HealthMetricsGrid } from '@/components/dashboard/HealthMetricCard';
-import { RecentRecords } from '@/components/dashboard/RecentRecords';
-import { UpcomingAppointment } from '@/components/dashboard/UpcomingAppointments';
-import { MedicationsWidget } from '@/components/dashboard/MedicationsWidget';
+// Import all dashboard components
+import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
+import { HealthMetricsGrid } from '@/components/dashboard/healthmetriccard';
+import { RecentRecords } from '@/components/dashboard/recentrecords';
+import { UpcomingAppointment } from '@/components/dashboard/upcomingappointments';
+import { MedicationsWidget } from '@/components/dashboard/medicationswidget';
 
-//Import types
-import type { HealthMetric } from '@/components/dashboard/HealthMetricCard';
-import type { MedicalRecord } from '@/components/dashboard/RecentRecords';
-import type { Appointment } from '@/components/dashboard/UpcomingAppointments';
-import type { Medication } from '@/components/dashboard/MedicationsWidget';
+// Import types
+import type { HealthMetric } from '@/components/dashboard/healthmetriccard';
+import type { MedicalRecord } from '@/components/dashboard/recentrecords';
+import type { Appointment } from '@/components/dashboard/upcomingappointments';
+import type { Medication } from '@/components/dashboard/medicationswidget';
 
 
 //Sample data for the dashboard (replace with real API data in production)
