@@ -1,22 +1,16 @@
-// components/dashboard/Header.tsx
-// ============================================
-// HEADER COMPONENT
-// ============================================
-// Top navigation bar with:
-// - Hamburger menu (mobile only)
-// - Notification bell with red dot
-// - User info (name, patient ID)
+
+//Header component for the dashboard
 
 'use client';
 
 import React from 'react';
 import { Menu, Bell, User } from 'lucide-react';
 
-// Props interface
+//Props interface
 interface HeaderProps {
-  onMenuClick: () => void;  // Function to toggle sidebar
-  userName?: string;        // User's name
-  patientId?: string;       // Patient ID
+  onMenuClick: () => void;  //Function to toggle sidebar
+  userName?: string;        //User's name
+  patientId?: string;       //Patient ID
 }
 
 export function Header({ 
@@ -28,9 +22,7 @@ export function Header({
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between px-4 lg:px-6 py-3">
         
-        {/* ================================
-            LEFT SIDE - Hamburger Menu
-            ================================
+        {/* Left side - Hamburger Menu
             Only visible on mobile/tablet (lg:hidden hides it on large screens)
         */}
         <button
@@ -44,8 +36,7 @@ export function Header({
         {/* Spacer - pushes right side content to the edge on desktop */}
         <div className="hidden lg:block" />
 
-        {/* ================================
-            RIGHT SIDE - Notifications & User
+        {/* Right side - Notifications & User
             ================================ */}
         <div className="flex items-center gap-4">
           
