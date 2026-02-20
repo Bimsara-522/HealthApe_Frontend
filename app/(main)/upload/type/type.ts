@@ -10,15 +10,35 @@ export type UploadCategory =
 export type FileStatus = "queued" | "validating" | "valid" | "invalid" | "error";
 
 export interface FormDataType {
+  // Shared/common
+  date?: string; // yyyy-mm-dd
+  doctorName: string;
+  hospital: string;
+
+  // Doctor Note
   symptoms: string;
+  diagnosis: string;
+  notes: string;
+
+  // Prescription
   medications: string;
   dosage: string;
   frequency: string;
-  diagnosis: string;
-  doctorName: string;
-  notes: string;
-  hospital: string;
-  date: string; // yyyy-mm-dd
+
+  // Lab Report
+  testName: string;
+  results: string;
+
+  // Image/X-ray
+  imagingType: string;
+  bodyPart: string;
+  findings: string;
+
+  // Insurance
+  provider: string;
+  policyNumber: string;
+  claimNumber: string;
+  coverageDetails: string;
 }
 
 export interface UploadedFile {

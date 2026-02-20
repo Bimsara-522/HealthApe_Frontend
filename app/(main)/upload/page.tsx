@@ -12,16 +12,36 @@ export default function UploadRecordPage() {
   const [selectedCategory, setSelectedCategory] = useState<UploadCategory | null>(null);
 
   const [formData, setFormData] = useState<FormDataType>({
-    symptoms: "",
-    medications: "",
-    dosage: "",
-    frequency: "",
-    diagnosis: "",
-    doctorName: "",
-    notes: "",
-    hospital: "",
-    date: "",
-  });
+  // shared
+  doctorName: "",
+  hospital: "",
+  date: "",
+
+  // doctor note
+  symptoms: "",
+  diagnosis: "",
+  notes: "",
+
+  // prescription
+  medications: "",
+  dosage: "",
+  frequency: "",
+
+  // lab
+  testName: "",
+  results: "",
+
+  // imaging
+  imagingType: "",
+  bodyPart: "",
+  findings: "",
+
+  // insurance
+  provider: "",
+  policyNumber: "",
+  claimNumber: "",
+  coverageDetails: "",
+});
 
   const handleDelete = () => setUploadedFile(null);
 
