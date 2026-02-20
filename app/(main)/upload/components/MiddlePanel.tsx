@@ -264,49 +264,57 @@ export default function MiddlePanel({
     }
   };
 
-  const saveRecord = async () => {
-    setErrorMessage("");
-    setSaving(true);
+const saveRecord = async () => {
+  if (!uploadedFile) {
+    setErrorMessage("No file to save.");
+    return;
+  }
 
-    try {
-      const res = await fetch(`${API_BASE}/medical-record`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symptoms: formData.symptoms || null,
-          medications: formData.medications || null,
-          dosage: formData.dosage || null,
-          frequency: formData.frequency || null,
-          diagnosis: formData.diagnosis || null,
-          doctorName: formData.doctorName || null,
-          hospital: formData.hospital || null,
-          notes: formData.notes || null,
-          date: formData.date ? new Date(formData.date).toISOString() : null,
-          category: selectedCategory || null,
-        }),
-      });
+  setErrorMessage("");
+  setSaving(true);
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to save record");
-      }
+  try {
+    const fd = new FormData();
+    fd.append("file", uploadedFile.file);
 
-      setSaveSuccess(true);
+    fd.append("category", selectedCategory || "");
+    if (formData.date) fd.append("date", formData.date);
 
-      setTimeout(() => {
-        resetForm();
-        setUploadedFile(null);
-        setSelectedCategory(null);
-        setValidated(false);
-        setSaveSuccess(false);
-        setErrorMessage("");
-      }, 1500);
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to save record. Please try again.");
-    } finally {
-      setSaving(false);
+    fd.append("symptoms", formData.symptoms || "");
+    fd.append("diagnosis", formData.diagnosis || "");
+    fd.append("medications", formData.medications || "");
+    fd.append("dosage", formData.dosage || "");
+    fd.append("frequency", formData.frequency || "");
+    fd.append("doctorName", formData.doctorName || "");
+    fd.append("hospital", formData.hospital || "");
+    fd.append("notes", formData.notes || "");
+
+    const res = await fetch(`${API_BASE}/medical-record`, {
+      method: "POST",
+      body: fd, // ✅ multipart
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Failed to save record");
     }
-  };
+
+    setSaveSuccess(true);
+
+    setTimeout(() => {
+      resetForm();
+      setUploadedFile(null);
+      setSelectedCategory(null);
+      setValidated(false);
+      setSaveSuccess(false);
+      setErrorMessage("");
+    }, 1500);
+  } catch (err: any) {
+    setErrorMessage(err?.message || "Failed to save record. Please try again.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const busy = loading || validating || saving;
 
@@ -318,11 +326,6 @@ export default function MiddlePanel({
 
   return (
     <div className="space-y-6 pb-28 lg:pb-0">
-      {/* Header */}
-      <div>
-        <h1 className="text-lg font-bold text-slate-900 sm:text-xl">Upload Medical File</h1>
-        <p className="mt-0.5 text-xs text-slate-400">Select type → Upload → Validate → Review → Save</p>
-      </div>
 
       {/* Step 1: Upload Type */}
       <section>
