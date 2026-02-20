@@ -28,15 +28,12 @@
       {
         "name": "next"
       }
-<<<<<<< HEAD
-    ]
-=======
     ],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     }
->>>>>>> dev
+
   },
   "include": [
     "next-env.d.ts",
