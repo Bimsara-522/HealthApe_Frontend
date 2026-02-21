@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import api from "@/lib/api";
+import api from "@/lib/api/api";
 
 type signUpForm = {
     fullName: string;
@@ -21,7 +21,7 @@ export default function RegisterPage() {
         try {
             await api.post('/auth/signup', data);
             setMessage('Registration successful! Redirecting to login...');
-            setTimeout(() => router.push('/auth/login'), 2000);
+            setTimeout(() => router.push('/login'), 2000);
         } catch (error: unknown) {
             setMessage('Registration failed. Please try again.');
         }
@@ -93,7 +93,7 @@ export default function RegisterPage() {
                         </button>
 
                         <p className="text-center text-sm text-blue-600 mt-4">
-                            <Link href="/auth/login">
+                            <Link href="/login">
                                 I already have an account?
                             </Link>
                         </p>

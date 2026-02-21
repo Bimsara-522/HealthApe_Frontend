@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Menu, Bell, User } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 //Props interface
 interface HeaderProps {
@@ -15,9 +16,10 @@ interface HeaderProps {
 
 export function Header({ 
   onMenuClick, 
-  userName = 'John Doe',
-  patientId = '#1234'
 }: HeaderProps) {
+
+  const { user, logout } = useAuth();
+
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between px-4 lg:px-6 py-3">
@@ -56,8 +58,8 @@ export function Header({
             
             {/* Name and Patient ID - Hidden on very small screens */}
             <div className="hidden sm:block">
-              <p className="text-sm font-medium text-gray-900">{userName}</p>
-              <p className="text-xs text-gray-500">Patient ID: {patientId}</p>
+              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+              <p className="text-xs text-gray-500">Patient ID: {user?.sub}</p>
             </div>
           </div>
         </div>
