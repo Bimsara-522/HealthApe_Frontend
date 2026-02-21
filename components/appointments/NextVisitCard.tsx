@@ -1,5 +1,5 @@
 // Prominent card showing the immediate upcoming appointment
-import type { Appointment } from '@/types/appointment'
+import type { Appointment } from 'app/(main)/appointments/types/appointment'
 
 interface Props { appointment: Appointment }
 

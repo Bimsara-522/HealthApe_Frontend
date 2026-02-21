@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useAppointment } from '@/hooks/useAppointment'
-import { useCancelAppointment } from '@/hooks/useAppointments'
+import { useAppointment } from 'app/(main)/appointments/hooks/useAppointment'
+import { useCancelAppointment } from 'app/(main)/appointments/hooks/useAppointments'
 import { AppointmentStatusBadge } from '@/components/appointments/AppointmentStatusBadge'
-import { formatAppointmentDate } from '@/lib/utils/date'
+import { formatAppointmentDate } from 'app/(main)/appointments/lib/utils/date'
 
 export default function AppointmentDetailClient({ id }: { id: string }) {
   const router = useRouter()
@@ -26,7 +26,7 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
       <div className="p-6 max-w-4xl">
         <h1 className="text-2xl font-bold">Appointment</h1>
         <p className="mt-2 text-sm text-red-600">  {(error as any)?.message ?? 'Failed to load appointment'} </p>
-        <Link className="inline-block mt-4 text-blue-600 hover:underline" href="/dashboard/appointments">  ← Back to appointments </Link>
+        <Link className="inline-block mt-4 text-blue-600 hover:underline" href="/appointments">  ← Back to appointments </Link>
       </div>
     )
   }
@@ -46,7 +46,7 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href={`/dashboard/appointments/${appt.id}/edit`} className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:opacity-90"> Edit </Link>
+          <Link href={`/appointments/${appt.id}/edit`} className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:opacity-90"> Edit </Link>
           <button onClick={onCancel} disabled={cancelMutation.isPending || appt.status === 'cancelled'} className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"> {cancelMutation.isPending ? 'Cancelling...' : 'Cancel'} </button>
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
         </div>
       </div>
 
-      <Link className="text-blue-600 hover:underline text-sm" href="/dashboard/appointments">
+      <Link className="text-blue-600 hover:underline text-sm" href="/appointments">
         ← Back to appointments
       </Link>
     </div>

@@ -5,7 +5,7 @@ import { AppointmentCalendar } from '@/components/appointments/AppointmentCalend
 import { NextVisitCard } from '@/components/appointments/NextVisitCard'
 import { PastVisitsSidebar } from '@/components/appointments/PastVisitsSidebar'
 import { NewBookingButton } from '@/components/appointments/NewBookingButton'
-import { getAppointments } from '@/lib/api/appointments'
+import { getAppointments } from 'app/(main)/appointments/lib/api/appointments'
 import { CalendarSkeleton } from './loading'
 
 export default async function AppointmentsPage() {

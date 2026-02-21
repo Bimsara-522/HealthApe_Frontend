@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Appointment } from '@/types/appointment'
+import type { Appointment } from 'app/(main)/appointments/types/appointment'
 
 const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -82,7 +82,7 @@ export function AppointmentCalendar({ appointments }: Props) {
     if (!appts || appts.length === 0) return
 
     // Navigate to the first appointment on that day (earliest time)
-    router.push(`/dashboard/appointments/${appts[0].id}`)
+    router.push(`/appointments/${appts[0].id}`)
   }
 
   const monthLabel = current.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })

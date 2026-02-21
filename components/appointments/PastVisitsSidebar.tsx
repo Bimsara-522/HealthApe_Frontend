@@ -1,6 +1,6 @@
 // Past visits sidebar — shows last 5 appointments
 import { AppointmentCard } from './AppointmentCard'
-import type { Appointment } from '@/types/appointment'
+import type { Appointment } from 'app/(main)/appointments/types/appointment'
 
 interface Props {
   visits: Appointment[]

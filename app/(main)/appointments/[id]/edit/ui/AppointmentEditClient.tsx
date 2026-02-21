@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAppointment } from '@/hooks/useAppointment'
-import { updateAppointment } from '@/lib/api/appointments'
+import { useAppointment } from 'app/(main)/appointments/hooks/useAppointment'
+import { updateAppointment } from 'app/(main)/appointments/lib/api/appointments'
 
 const schema = z.object({
   date: z.string().min(1),

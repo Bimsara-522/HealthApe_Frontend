@@ -1,7 +1,6 @@
 // Renders a list of AppointmentCard items; handles empty state
 'use client'
-
-import type { Appointment } from '@/types/appointment'
+import type { Appointment } from 'app/(main)/appointments/types/appointment'
 import { AppointmentCard } from './AppointmentCard'
 
 interface Props {

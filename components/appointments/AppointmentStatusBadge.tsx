@@ -1,5 +1,5 @@
 // Pill badge: Confirmed / Pending / Cancelled with color-coding
-import type { AppointmentStatus } from '@/types/appointment'
+import type { AppointmentStatus } from 'app/(main)/appointments/types/appointment'
 
 const STATUS_CONFIG: Record<AppointmentStatus, { label: string; className: string }> = {
   confirmed:  { label: 'Confirmed',  className: 'bg-blue-50 text-blue-600 border-blue-100'  },

@@ -1,11 +1,13 @@
 // /appointments/[id]/edit
 // Edit / reschedule existing appointment
+import { use } from 'react'
 import AppointmentEditClient from './ui/AppointmentEditClient'
 
 export default function EditAppointmentPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  return <AppointmentEditClient id={params.id} />
+  const { id } = use(params)
+  return <AppointmentEditClient id={id} />
 }

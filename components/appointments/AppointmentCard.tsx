@@ -1,8 +1,8 @@
 // Single appointment row — doctor name, specialty, clinic, date, status badge
 import Link from 'next/link'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
-import type { Appointment } from '@/types/appointment'
-import { formatAppointmentDate } from '@/lib/utils/date'
+import type { Appointment } from 'app/(main)/appointments/types/appointment'
+import { formatAppointmentDate } from 'app/(main)/appointments/lib/utils/date'
 
 interface Props { appointment: Appointment }
 
@@ -10,7 +10,7 @@ export function AppointmentCard({ appointment }: Props) {
   
   return (
     <Link
-      href={`/dashboard/appointments/${appointment.id}`}
+      href={`/appointments/${appointment.id}`}
       className="w-full flex items-center justify-between gap-4 p-4 bg-white rounded-xl
                  border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
     >

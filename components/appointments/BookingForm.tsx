@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { useCreateAppointment } from '@/hooks/useAppointments'
+import { useCreateAppointment } from 'app/(main)/appointments/hooks/useAppointments'
 
 const schema = z.object({
   doctorId: z.string().min(1, 'Select a doctor'),
