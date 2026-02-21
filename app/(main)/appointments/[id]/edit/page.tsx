@@ -1,6 +1,6 @@
 // /appointments/[id]/edit
 // Edit / reschedule existing appointment
-import AppointmentEditClient from '@/app/dashboard/appointments/[id]/edit/ui/AppointmentEditClient'
+import AppointmentEditClient from './ui/AppointmentEditClient'
 
 export default function EditAppointmentPage({
   params,
