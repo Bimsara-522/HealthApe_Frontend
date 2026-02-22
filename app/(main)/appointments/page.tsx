@@ -25,19 +25,19 @@ export default async function AppointmentsPage() {
       {/* Main Column */}
       <div className="flex-1 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Appointments</h1>
+          <h1 className="text-3xl font-bold">Appointments</h1>
           <NewBookingButton />
         </div>
 
         <Suspense fallback={<CalendarSkeleton />}>
           <AppointmentCalendar appointments={appointments} />
         </Suspense>
-
+        <h2 className="text-2xl font-bold">Next Visit</h2>
         {nextVisit && <NextVisitCard appointment={nextVisit} />}
       </div>
 
       {/* Right Sidebar */}
-      <aside className="w-72">
+      <aside className="w-100">
         <PastVisitsSidebar visits={pastVisits} />
       </aside>
     </div>

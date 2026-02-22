@@ -4,16 +4,30 @@ import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 import type { Appointment } from 'app/(main)/appointments/types/appointment'
 import { formatAppointmentDate } from 'app/(main)/appointments/lib/utils/date'
 
-interface Props { appointment: Appointment }
+interface Props {
+  appointment: Appointment
+  /** href prop override destination if needed (e.g., Next Visit -> edit page) */
+  href?: string
+  /** Adds the blue accent strip on the left (used in Next Visit design) */
+  accentLeft?: boolean
+}
 
-export function AppointmentCard({ appointment }: Props) {
-  
+// export function AppointmentCard({ appointment }: Props) {
+export function AppointmentCard({ appointment, href, accentLeft }: Props) {
+  // ?? checks if href is provided (not null and not undefined) → use it, Otherwise → use the default details route
+  const targetHref = href ?? `/appointments/${appointment.id}`
   return (
     <Link
-      href={`/appointments/${appointment.id}`}
-      className="w-full flex items-center justify-between gap-4 p-4 bg-white rounded-xl
-                 border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-    >
+          href={targetHref}
+          className={[
+            'w-full flex items-center justify-between gap-4 p-8 bg-white rounded-xl',
+            'border border-gray-100 shadow-sm hover:shadow-md transition-shadow',
+            'relative overflow-hidden',
+            // Blue accent strip (matches design)
+            accentLeft ? 'pl-10' : '',
+            accentLeft ? 'before:absolute before:left-0 before:top-0 before:h-full before:w-1.5 before:bg-blue-600' : '',
+          ].join(' ')}>
+
       {/* Left */}
       <div className="flex items-center gap-4 min-w-0">
         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -23,7 +37,7 @@ export function AppointmentCard({ appointment }: Props) {
             <span className="text-gray-400 text-xl">👤</span>
           )}
         </div>
-
+        {/* Info */}
         <div className="min-w-0">
           <p className="font-semibold text-gray-900 truncate">{appointment.doctor.name}</p>
           <p className="text-sm text-gray-500 truncate">
@@ -36,7 +50,7 @@ export function AppointmentCard({ appointment }: Props) {
       </div>
 
       {/* Right */}
-      <div className="flex-shrink-0 px-3 py-1 border rounded-full">
+      <div className="flex-shrink-0 px-3 rounded-full">
         <AppointmentStatusBadge status={appointment.status} />
       </div>
     </Link>
