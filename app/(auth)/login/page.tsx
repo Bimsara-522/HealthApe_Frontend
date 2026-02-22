@@ -20,10 +20,8 @@ export default function LoginPage() {
     const handleLogin = async (data: signInForm) => {
         try{
             const response =await api.post('/auth/login', data);
-            const token = response.data.access_token;
-            localStorage.setItem('access_token', token);
-            setMessage('Login successful!!!');
-            setTimeout(() => router.push('/dashboard'), 1500);
+            setMessage(response.data.message || 'Login successful! Redirecting...');
+            setTimeout(() => router.replace('/dashboard'), 1500);
         }catch(error: unknown){
             setMessage('Login failed. Please check your credentials and try again.');
         // const loginSuccess = true;

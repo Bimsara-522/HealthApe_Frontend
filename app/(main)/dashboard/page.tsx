@@ -109,14 +109,14 @@ const medications: Medication[] = [
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
-  const router = useRouter();
+  // const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      // console.log('User not authenticated, redirecting to login page...');
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     // console.log('User not authenticated, redirecting to login page...');
+  //     router.push('/login');
+  //   }
+  // }, [user, loading, router]);
 
   if (loading) return <p>Loading...</p>;
   return (

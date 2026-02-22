@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import api from '@/lib/api/api';
+import router from 'next/router';
 
 interface User {
   sub: number;
@@ -23,40 +24,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // ✅ useCallback prevents function from recreating every render
-  const fetchUser = useCallback(async () => {
-    const token = localStorage.getItem('access_token');
-
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await api.get('/users/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setUser(response.data);
-    } catch (error) {
-      localStorage.removeItem('access_token');
-      setUser(null);
-    }
-
+  const fetchUser = async () => {
+  try {
+    const response = await api.get('/users/me');
+    setUser(response.data);
+  } catch {
+    setUser(null);
+  } finally {
     setLoading(false);
-  }, []);
+  }
+};
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    setUser(null);
-    window.location.href = '/login';
-  };
-
+  const logout = async () => {
+  await api.post('/auth/logout');
+  router.push('/login');
+};
   // ✅ useMemo prevents infinite re-renders
   const value = useMemo(
     () => ({
