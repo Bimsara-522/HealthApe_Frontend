@@ -8,27 +8,34 @@ import { useRouter } from 'next/navigation'
 import { useCreateAppointment } from 'app/(main)/appointments/hooks/useAppointments'
 
 const schema = z.object({
-  doctorId: z.string().min(1, 'Select a doctor'),
-  clinic:   z.string().min(1),
-  date:     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
-  time:     z.string().min(1, 'Select a time slot'),
-  reason:   z.string().optional(),
+  doctorId: z.string().min(1, 'Select a doctor'), // doctorId must be a non-empty string
+  clinic:   z.string().min(1), // clinic must be a non-empty string
+  date:     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'), // date must match the format YYYY-MM-DD
+  time:     z.string().min(1, 'Select a time slot'), // time must be selected
+  reason:   z.string().optional(), // reason is optional
 })
 
-type FormValues = z.infer<typeof schema>
+// Generates a TypeScript type from the schema
+// It prevents mismatched fields and improves autocomplete
+type FormValues = z.infer<typeof schema> 
 
 export function BookingForm() {
   const router = useRouter()
+  // mutateAsync(values) sends a POST request through API layer 
+  // isPending becomes true while it is submitting (useful for disabling button / changing text)
   const { mutateAsync, isPending } = useCreateAppointment()
 
+  // register connects inputs to the form state
+  // handleSubmit runs validation and calls submit function if valid
+  // errors contains validation error messages
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema), // React Hook Form automatically checks those schema rules when submitting
   })
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const appt = await mutateAsync(values)
-      router.push(`/dashboard/appointments/${appt.id}`)
+      const appt = await mutateAsync(values) // mutateAsync(values) waits for a created appointment
+      router.push(`/appointments/${appt.id}`) // backend is expected to return a new appointment object to frontend and then when it is returned, frontend navigates to that appointment details page
     } catch {
       // toast.error('Failed to book appointment')
     }

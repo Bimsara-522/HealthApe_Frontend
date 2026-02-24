@@ -13,12 +13,16 @@ export default async function AppointmentsPage() {
   const appointments = await getAppointments({ month: undefined })
 
   const nextVisit = appointments
-    .filter(a => new Date(a.date) > new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]
+    .filter(a => new Date(a.date) > new Date()) // convert the appointment's date string into a Date and compare it with new Date() which is today
+    // If: a.date is earlier → result is negative → a goes first
+    // a.date is later → result is positive → b goes first
+    // That means the array becomes sorted from earliest date → latest date
+    // After sorting, we immediately take: [0] first one 
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0] 
 
   const pastVisits = appointments
-    .filter(a => new Date(a.date) <= new Date())
-    .slice(0, 5)
+    .filter(a => new Date(a.date) <= new Date()) // convert the appointment's date string into a Date and keep appointments that are today or earlier
+    .slice(0, 5) // take first 5 appointments
 
   return (
     <div className="flex gap-6 p-6">
@@ -30,15 +34,16 @@ export default async function AppointmentsPage() {
         </div>
 
         <Suspense fallback={<CalendarSkeleton />}>
-          <AppointmentCalendar appointments={appointments} />
+          <AppointmentCalendar appointments = {appointments} />
         </Suspense>
+
         <h2 className="text-2xl font-bold">Next Visit</h2>
-        {nextVisit && <NextVisitCard appointment={nextVisit} />}
+        {nextVisit && <NextVisitCard appointment = {nextVisit} />}
       </div>
 
       {/* Right Sidebar */}
-      <aside className="w-100">
-        <PastVisitsSidebar visits={pastVisits} />
+      <aside className="w-[360px]">
+        <PastVisitsSidebar visits = {pastVisits} />
       </aside>
     </div>
   )

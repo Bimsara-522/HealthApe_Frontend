@@ -32,7 +32,8 @@ export default function AppointmentEditClient({ id }: { id: string }) {
       time: values.time,
       notes: values.notes,
     })
-    router.push(`/dashboard/appointments/${id}/edit`)
+    // router.push(`/appointments/${id}/edit`)
+    router.push(`/appointments/${id}`) // go back to appointment detail
     router.refresh()
   }
 
