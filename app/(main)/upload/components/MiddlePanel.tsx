@@ -85,6 +85,48 @@ const uploadTypes: UploadTypeCard[] = [
   },
 ];
 
+type FieldKey = keyof FormDataType;
+
+const fieldsByCategory: Record<UploadCategory, FieldKey[]> = {
+  "Prescription": ["medications", "dosage", "frequency", "doctorName", "hospital", "date", "diagnosis"],
+  "Lab Report": ["testName", "results", "hospital", "date"],
+  "Image/X-ray": ["imagingType", "bodyPart", "findings", "hospital", "date"],
+  "Doctor Note": ["symptoms", "diagnosis", "doctorName", "hospital", "date"],
+  "Insurance Document": ["provider", "policyNumber", "claimNumber", "coverageDetails", "date"],
+};
+
+const fieldMeta: Record<FieldKey, { label: string; placeholder?: string; type?: "text" | "textarea" | "date" }> = {
+  // shared
+  date: { label: "Date", type: "date" },
+  doctorName: { label: "Doctor Name", placeholder: "e.g., Dr. Amanda Silva", type: "text" },
+  hospital: { label: "Hospital / Clinic", placeholder: "e.g., Asiri Hospital", type: "text" },
+
+  // doctor note
+  symptoms: { label: "Symptoms", placeholder: "e.g., Fever, headache", type: "text" },
+  diagnosis: { label: "Diagnosis", placeholder: "e.g., Viral infection", type: "text" },
+  notes: { label: "Additional Notes", placeholder: "Optional notes...", type: "textarea" },
+
+  // prescription
+  medications: { label: "Medications", placeholder: "e.g., Paracetamol, Amoxicillin", type: "text" },
+  dosage: { label: "Dosage", placeholder: "e.g., 500mg", type: "text" },
+  frequency: { label: "Frequency", placeholder: "e.g., Twice daily", type: "text" },
+
+  // lab
+  testName: { label: "Test Name", placeholder: "e.g., FBC, Lipid Profile", type: "text" },
+  results: { label: "Results", placeholder: "e.g., Hb 13.5, WBC 7.2...", type: "textarea" },
+
+  // imaging
+  imagingType: { label: "Imaging Type", placeholder: "e.g., X-ray / MRI / CT", type: "text" },
+  bodyPart: { label: "Body Part", placeholder: "e.g., Chest, Right Knee", type: "text" },
+  findings: { label: "Findings / Impression", placeholder: "e.g., No fracture seen", type: "textarea" },
+
+  // insurance
+  provider: { label: "Provider", placeholder: "e.g., AIA / Allianz", type: "text" },
+  policyNumber: { label: "Policy Number", placeholder: "e.g., POL-12345", type: "text" },
+  claimNumber: { label: "Claim Number", placeholder: "e.g., CLM-7890", type: "text" },
+  coverageDetails: { label: "Coverage Details", placeholder: "e.g., Amounts / coverage notes", type: "textarea" },
+};
+
 export default function MiddlePanel({
   uploadedFile,
   setUploadedFile,
@@ -113,15 +155,35 @@ export default function MiddlePanel({
 
   const resetForm = () => {
     setFormData({
-      symptoms: "",
-      medications: "",
-      dosage: "",
-      frequency: "",
-      diagnosis: "",
-      doctorName: "",
-      notes: "",
-      hospital: "",
-      date: "",
+      // shared
+          doctorName: "",
+          hospital: "",
+          date: "",
+
+          // doctor note
+          symptoms: "",
+          diagnosis: "",
+          notes: "",
+
+          // prescription
+          medications: "",
+          dosage: "",
+          frequency: "",
+
+          // lab
+          testName: "",
+          results: "",
+
+          // imaging
+          imagingType: "",
+          bodyPart: "",
+          findings: "",
+
+          // insurance
+          provider: "",
+          policyNumber: "",
+          claimNumber: "",
+          coverageDetails: "",
     });
   };
 
@@ -240,18 +302,18 @@ export default function MiddlePanel({
       );
 
       if (data.extractedFields) {
-        setFormData((prev) => ({
-          symptoms: data.extractedFields?.symptoms ?? prev.symptoms ?? "",
-          medications: data.extractedFields?.medications ?? prev.medications ?? "",
-          dosage: data.extractedFields?.dosage ?? prev.dosage ?? "",
-          frequency: data.extractedFields?.frequency ?? prev.frequency ?? "",
-          diagnosis: data.extractedFields?.diagnosis ?? prev.diagnosis ?? "",
-          doctorName: data.extractedFields?.doctorName ?? prev.doctorName ?? "",
-          hospital: data.extractedFields?.hospital ?? prev.hospital ?? "",
-          notes: data.extractedFields?.notes ?? prev.notes ?? "",
-          date: data.extractedFields?.date ?? prev.date ?? "",
-        }));
-      }
+  setFormData((prev) => {
+    const next = { ...prev };
+
+    const allowed = selectedCategory ? fieldsByCategory[selectedCategory] : [];
+    for (const k of allowed) {
+      const v = data.extractedFields?.[k];
+      if (typeof v === "string") next[k] = v as any;
+    }
+
+    return next;
+  });
+}
 
       setValidated(true);
     } catch (err: any) {
@@ -264,49 +326,51 @@ export default function MiddlePanel({
     }
   };
 
-  const saveRecord = async () => {
-    setErrorMessage("");
-    setSaving(true);
+const saveRecord = async () => {
+  if (!uploadedFile) {
+    setErrorMessage("No file to save.");
+    return;
+  }
 
-    try {
-      const res = await fetch(`${API_BASE}/medical-record`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symptoms: formData.symptoms || null,
-          medications: formData.medications || null,
-          dosage: formData.dosage || null,
-          frequency: formData.frequency || null,
-          diagnosis: formData.diagnosis || null,
-          doctorName: formData.doctorName || null,
-          hospital: formData.hospital || null,
-          notes: formData.notes || null,
-          date: formData.date ? new Date(formData.date).toISOString() : null,
-          category: selectedCategory || null,
-        }),
-      });
+  setErrorMessage("");
+  setSaving(true);
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to save record");
+  try {
+          const fd = new FormData();
+      fd.append("file", uploadedFile.file);
+      fd.append("category", selectedCategory || "");
+
+      const allowed = selectedCategory ? fieldsByCategory[selectedCategory] : [];
+      for (const k of allowed) {
+        fd.append(String(k), (formData[k] ?? "") as string);
       }
 
-      setSaveSuccess(true);
+      const res = await fetch(`${API_BASE}/medical-record`, {
+      method: "POST",
+      body: fd, // ✅ multipart
+    });    
 
-      setTimeout(() => {
-        resetForm();
-        setUploadedFile(null);
-        setSelectedCategory(null);
-        setValidated(false);
-        setSaveSuccess(false);
-        setErrorMessage("");
-      }, 1500);
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to save record. Please try again.");
-    } finally {
-      setSaving(false);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Failed to save record");
     }
-  };
+
+    setSaveSuccess(true);
+
+    setTimeout(() => {
+      resetForm();
+      setUploadedFile(null);
+      setSelectedCategory(null);
+      setValidated(false);
+      setSaveSuccess(false);
+      setErrorMessage("");
+    }, 1500);
+  } catch (err: any) {
+    setErrorMessage(err?.message || "Failed to save record. Please try again.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const busy = loading || validating || saving;
 
@@ -316,13 +380,9 @@ export default function MiddlePanel({
   // ✅ save enabled only after validated
   const canSave = validated;
 
+  const activeFields = selectedCategory ? fieldsByCategory[selectedCategory] : [];
   return (
     <div className="space-y-6 pb-28 lg:pb-0">
-      {/* Header */}
-      <div>
-        <h1 className="text-lg font-bold text-slate-900 sm:text-xl">Upload Medical File</h1>
-        <p className="mt-0.5 text-xs text-slate-400">Select type → Upload → Validate → Review → Save</p>
-      </div>
 
       {/* Step 1: Upload Type */}
       <section>
@@ -586,105 +646,62 @@ export default function MiddlePanel({
 
       {/* Step 4: Review Form (✅ EXACT like HTML: disabled until validated) */}
       <section>
-        <div className="mb-3 flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
-            4
-          </span>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Review & Edit Details</h2>
-          {validated && (
-            <span className="ml-auto rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-              Auto-filled by AI
-            </span>
-          )}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+  {activeFields.map((key) => {
+    const meta = fieldMeta[key];
+    const value = (formData[key] ?? "") as string;
+
+    // Full width for textareas
+    const wide = meta.type === "textarea";
+
+    if (meta.type === "date") {
+      return (
+        <div key={String(key)} className={wide ? "lg:col-span-2" : ""}>
+          <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
+          <input
+            type="date"
+            name={String(key)}
+            value={value}
+            onChange={handleInputChange}
+            disabled={!validated}
+            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+          />
         </div>
+      );
+    }
 
-        <div className={`rounded-2xl border p-4 transition-all duration-300 sm:p-5 ${validated ? "border-emerald-200 bg-emerald-50/30" : "border-slate-200 bg-white opacity-60"}`}>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {[
-              { name: "symptoms", label: "Symptoms", placeholder: "e.g., Fever, headache, fatigue..." },
-              { name: "diagnosis", label: "Diagnosis", placeholder: "e.g., Viral infection..." },
-              { name: "medications", label: "Medications", placeholder: "e.g., Paracetamol, Amoxicillin..." },
-            ].map((field) => (
-              <div key={field.name}>
-                <label className="block text-[11px] font-medium text-slate-500">{field.label}</label>
-                <input
-                  name={field.name}
-                  value={(formData as any)[field.name]}
-                  onChange={handleInputChange}
-                  placeholder={field.placeholder}
-                  disabled={!validated}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-                />
-              </div>
-            ))}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500">Dosage</label>
-                <input
-                  name="dosage"
-                  value={formData.dosage}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 500mg"
-                  disabled={!validated}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500">Frequency</label>
-                <input
-                  name="frequency"
-                  value={formData.frequency}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Twice daily"
-                  disabled={!validated}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500">Doctor Name</label>
-              <input
-                name="doctorName"
-                value={formData.doctorName}
-                onChange={handleInputChange}
-                placeholder="e.g., Dr. Amanda Silva"
-                disabled={!validated}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-medium text-slate-500">Hospital / Clinic</label>
-              <input
-                name="hospital"
-                value={formData.hospital}
-                onChange={handleInputChange}
-                placeholder="e.g., Asiri Hospital"
-                disabled={!validated}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="block text-[11px] font-medium text-slate-500">Additional Notes</label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                placeholder="Any extra info, raw OCR text, or remarks..."
-                rows={3}
-                disabled={!validated}
-                className="mt-1 w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-              />
-            </div>
-          </div>
-
-          {!validated && (
-            <p className="mt-3 text-center text-[11px] text-slate-400">Fields will be enabled after successful validation.</p>
-          )}
+    if (meta.type === "textarea") {
+      return (
+        <div key={String(key)} className="lg:col-span-2">
+          <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
+          <textarea
+            name={String(key)}
+            value={value}
+            onChange={handleInputChange}
+            placeholder={meta.placeholder}
+            rows={3}
+            disabled={!validated}
+            className="mt-1 w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+          />
         </div>
+      );
+    }
+
+    return (
+      <div key={String(key)} className={wide ? "lg:col-span-2" : ""}>
+        <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
+        <input
+          name={String(key)}
+          value={value}
+          onChange={handleInputChange}
+          placeholder={meta.placeholder}
+          disabled={!validated}
+          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+        />
+      </div>
+    );
+  })}
+</div>
       </section>
 
       {/* Step 5: Save */}
