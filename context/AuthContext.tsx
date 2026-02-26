@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import api from '@/lib/api/api';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface User {
   sub: number;
@@ -20,6 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,8 +41,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchUser]);
 
   const logout = async () => {
-  await api.post('/auth/logout');
-  router.push('/login');
+  try {
+    await api.post('/auth/logout');
+  } catch (error) {
+    console.error('Logout failed', error);
+  } finally {
+    setUser(null);
+    router.replace('/login');
+  }
 };
   // ✅ useMemo prevents infinite re-renders
   const value = useMemo(
