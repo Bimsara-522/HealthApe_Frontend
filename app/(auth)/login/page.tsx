@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import api from "@/lib/api/api";
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from '@/context/AuthContext';
  
 type signInForm = {
     email: string;
@@ -15,11 +16,12 @@ export default function LoginPage() {
  
     const {register, handleSubmit} = useForm<signInForm>();
     const [message, setMessage] = useState('');
- 
+    const { fetchUser } = useAuth();
     const router = useRouter();
     const handleLogin = async (data: signInForm) => {
         try{
             const response =await api.post('/auth/login', data);
+            await fetchUser(); 
             setMessage(response.data.message || 'Login successful! Redirecting...');
             setTimeout(() => router.replace('/dashboard'), 1500);
         }catch(error: unknown){
