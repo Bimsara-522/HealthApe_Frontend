@@ -3,7 +3,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // Import all dashboard components
 import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
@@ -17,6 +17,8 @@ import type { HealthMetric } from '@/components/dashboard/healthmetriccard';
 import type { MedicalRecord } from '@/components/dashboard/recentrecords';
 import type { Appointment } from '@/components/dashboard/upcomingappointments';
 import type { Medication } from '@/components/dashboard/medicationswidget';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 
 //Sample data for the dashboard (replace with real API data in production)
@@ -106,13 +108,24 @@ const medications: Medication[] = [
 //Dashboard page component
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
+  // const router = useRouter();
+
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     // console.log('User not authenticated, redirecting to login page...');
+  //     router.push('/login');
+  //   }
+  // }, [user, loading, router]);
+
+  if (loading) return <p>Loading...</p>;
   return (
     // Main container with vertical spacing between sections
     <div className="space-y-6 animate-fade-in">
       
       {/* ROW 1: Welcome Banner */}
       <WelcomeBanner 
-        userName="John" 
+        userName={user?.name ?? ''} 
         upcomingAppointments={1} 
       />
       {/* ROW 2: Health Metrics */}
