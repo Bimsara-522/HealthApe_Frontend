@@ -38,7 +38,7 @@ export const mockAppointments: Appointment[] = [
     id: 'a4',
     doctor: { id: 'd4', name: 'Dr. Sarah Conner', specialty: 'Cardiologist' },
     clinic: 'City Heart Center',
-    date: '2026-02-26',
+    date: '2026-02-28',
     time: '09:00 AM',
     status: 'confirmed',
     createdAt: new Date().toISOString(),

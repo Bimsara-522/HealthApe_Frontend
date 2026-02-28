@@ -7,6 +7,7 @@ import { PastVisitsSidebar } from '@/components/appointments/PastVisitsSidebar'
 import { NewBookingButton } from '@/components/appointments/NewBookingButton'
 import { getAppointments } from 'app/(main)/appointments/lib/api/appointments'
 import { CalendarSkeleton } from './loading'
+import { AppointmentList } from '@/components/appointments/AppointmentList'
 
 export default async function AppointmentsPage() {
   // Fetch on the server — no loading spinner for initial render
@@ -37,8 +38,11 @@ export default async function AppointmentsPage() {
           <AppointmentCalendar appointments = {appointments} />
         </Suspense>
 
-        <h2 className="text-2xl font-bold">Next Visit</h2>
-        {nextVisit && <NextVisitCard appointment = {nextVisit} />}
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Next Visit</h2>
+          <NewBookingButton />
+          </div>
+          {nextVisit && <NextVisitCard appointment = {nextVisit} />}
       </div>
 
       {/* Right Sidebar */}
