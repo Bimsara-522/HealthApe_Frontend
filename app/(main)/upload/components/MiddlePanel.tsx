@@ -347,6 +347,7 @@ const saveRecord = async () => {
 
       const res = await fetch(`${API_BASE}/medical-record`, {
       method: "POST",
+      credentials: "include",
       body: fd, // ✅ multipart
     });    
 
