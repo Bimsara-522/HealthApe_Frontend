@@ -15,16 +15,25 @@ type signUpForm = {
 export default function RegisterPage() {
 
     const {register, handleSubmit} = useForm<signUpForm>();
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
     const [message, setMessage] = useState('');
     const router = useRouter();
     const handleSignUp = async (data: signUpForm) => {
         try {
             await api.post('/auth/signup', data);
-            setMessage('Registration successful! Redirecting to login...');
+            // setMessage('Registration successful! Redirecting to login...');
+            setMessage('Registration successful! Redirecting...');
+            setShowSuccess(true);
             setTimeout(() => router.push('/login'), 2000);
-        } catch (error: unknown) {
-            setMessage('Registration failed. Please try again.');
-        }
+        } catch (error: any) {
+            setErrorMessage(
+                error.response?.data?.message || 
+                'Registration failed. Please try again.'
+            );
+            setShowError(true);
+}
     };
 
   return (
@@ -100,8 +109,59 @@ export default function RegisterPage() {
                     </div> 
                 </div>
             </div>
-            {message && <p className="mt-4 text-center text-red-600">{message}</p>}
+            {/* {message && <p className="mt-4 text-center text-red-600">{message}</p>} */}
         </form>
+            {showError && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[520px] max-w-[92vw]">
+                    <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-white shadow-xl px-4 py-3">
+                    {/* icon */}
+                    <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 border border-red-200 text-red-600">
+                        !
+                    </div>
+
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">Sign up failed!</p>
+                        <p className="text-sm text-gray-600">{errorMessage}</p>
+                    </div>
+
+                    <button
+                        onClick={() => setShowError(false)}
+                        className="ml-2 rounded-md px-2 py-1 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+                    >
+                        OK
+                    </button>
+                    </div>
+                </div>
+            )}
+
+            {showSuccess && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[520px] max-w-[92vw] animate-slideDown">
+                    <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-white shadow-xl px-4 py-3">
+
+                    {/* Success Icon */}
+                    <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-green-50 border border-green-200 text-green-600 font-bold">
+                        ✓
+                    </div>
+
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">
+                        {message}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                        Redirecting to Login...
+                        </p>
+                    </div>
+
+                    {/* <button
+                        onClick={() => setShowSuccess(false)}
+                        className="ml-2 rounded-md px-3 py-1 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition"
+                    >
+                        OK
+                    </button> */}
+
+                    </div>
+                </div>
+                )}
     </main>
   );
 }
