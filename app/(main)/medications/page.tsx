@@ -187,6 +187,10 @@ export default function MedicationsPage() {
             <p className="text-gray-500 mb-4">
               Add your first medication to start tracking adherence
             </p>
+            <Button variant="primary" className="inline-flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              <span>Add Medication</span>
+            </Button>
           </div>
         )}
       </div>
