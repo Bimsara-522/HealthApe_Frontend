@@ -171,9 +171,18 @@ export default function MedicationsPage() {
       <WeeklyAdherenceCard />
 
       <div className="space-y-4">
-        {medications.map((medication) => (
-          <MedicationCard key={medication.id} medication={medication} />
-        ))}
+        {medications.length > 0 ? (
+          medications.map((medication) => (
+            <MedicationCard key={medication.id} medication={medication} />
+          ))
+        ) : (
+          // Empty State
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
+              <Package className="w-8 h-8 text-purple-400" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
