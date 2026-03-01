@@ -6,7 +6,7 @@
 'use client';
  
 import React from 'react';
-import { Plus, Pill, Check, Package } from 'lucide-react';
+import { Plus, Pill, Check, Package, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/UI/button';
  
