@@ -177,6 +177,17 @@ export default function MedicationsPage() {
   // CALCULATED VALUES
   const completedDays = weeklyAdherence.filter(d => d.completed).length;
   const adherencePercentage = Math.round((completedDays / weeklyAdherence.length) * 100);
+
+  // HANDLERS
+  const handleToggleDay = (index: number) => {
+    setWeeklyAdherence(prev =>
+      prev.map((day, i) =>
+        i === index
+          ? { ...day, completed: !day.completed }
+          : day
+      )
+    );
+  };
   
   return (
     <div className="space-y-6 animate-fade-in">
