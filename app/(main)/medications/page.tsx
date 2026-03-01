@@ -163,6 +163,16 @@ function MedicationCard({ medication }: MedicationCardProps) {
 // MAIN PAGE COMPONENT
  
 export default function MedicationsPage() {
+  // STATE
+  const [weeklyAdherence, setWeeklyAdherence] = useState<DayAdherence[]>([
+    { day: 'M', completed: true, isWeekend: false },
+    { day: 'T', completed: true, isWeekend: false },
+    { day: 'W', completed: true, isWeekend: false },
+    { day: 'T', completed: true, isWeekend: false },
+    { day: 'F', completed: true, isWeekend: false },
+    { day: 'S', completed: false, isWeekend: true },
+    { day: 'S', completed: false, isWeekend: true },
+  ]);
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
