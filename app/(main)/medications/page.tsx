@@ -271,7 +271,16 @@ export default function MedicationsPage() {
       <div className="space-y-4">
         {medications.length > 0 ? (
           medications.map((medication) => (
-            <MedicationCard key={medication.id} medication={medication} />
+            <MedicationCard
+              key={medication.id}
+              medication={medication}
+              isMenuOpen={openMenuId === medication.id}
+              onToggleMenu={() => setOpenMenuId(
+                openMenuId === medication.id ? null : medication.id
+              )}
+              onEdit={() => handleEditMedication(medication.id)}
+              onDelete={() => handleDeleteMedication(medication.id)}
+            />
           ))
         ) : (
           // Empty State
