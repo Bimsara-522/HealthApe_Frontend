@@ -181,6 +181,12 @@ export default function MedicationsPage() {
             <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4">
               <Package className="w-8 h-8 text-purple-400" />
             </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No medications yet
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Add your first medication to start tracking adherence
+            </p>
           </div>
         )}
       </div>
