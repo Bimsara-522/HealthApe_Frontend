@@ -145,9 +145,13 @@ function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceC
 
 interface MedicationCardProps {
   medication: Medication;
+  isMenuOpen: boolean;
+  onToggleMenu: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-function MedicationCard({ medication }: MedicationCardProps) {
+function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete }: MedicationCardProps) {
   const isLowStock = medication.daysRemaining < 5;
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer">
@@ -174,6 +178,18 @@ function MedicationCard({ medication }: MedicationCardProps) {
             {medication.frequency} • {medication.daysRemaining} days remaining
           </p>
 
+        </div>
+
+        {/* Actions Menu */}
+        <div className="relative">
+          <button
+            onClick={onToggleMenu}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <MoreVertical className="w-5 h-5 text-gray-400" />
+          </button>
+
+          
         </div>
       </div>
     </div>
