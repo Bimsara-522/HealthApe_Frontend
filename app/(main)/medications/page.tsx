@@ -188,12 +188,17 @@ export default function MedicationsPage() {
       )
     );
   };
-  
+
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
       
-
+      <WeeklyAdherenceCard
+        days={weeklyAdherence}
+        percentage={adherencePercentage}
+        onToggleDay={handleToggleDay}
+      />
+      
       <div className="space-y-4">
         {medications.length > 0 ? (
           medications.map((medication) => (
