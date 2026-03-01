@@ -90,6 +90,17 @@ function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceC
         </span>
       </div>
 
+{/* Progress Bar */}
+      <div className="w-full h-2 bg-gray-100 rounded-full mb-6 overflow-hidden">
+        <div 
+          className={cn(
+            'h-full rounded-full transition-all duration-500',
+            percentage >= 80 ? 'bg-green-500' : 
+            percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+          )}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
 
       <div className="flex items-center justify-between sm:justify-start sm:gap-8">
 
