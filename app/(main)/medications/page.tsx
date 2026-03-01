@@ -79,11 +79,20 @@ interface WeeklyAdherenceCardProps {
 function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceCardProps) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold text-gray-900">Weekly Adherence</h2>
-        <span className="text-green-600 font-medium">{percentage}% On Track</span>
+        <span className={cn(
+          'font-medium',
+          percentage >= 80 ? 'text-green-600' : 
+          percentage >= 50 ? 'text-yellow-600' : 'text-red-600'
+        )}>
+          {percentage}% On Track
+        </span>
       </div>
+
+
       <div className="flex items-center justify-between sm:justify-start sm:gap-8">
+
         {days.map((day: DayAdherence, index: number) => (
           <button
             key={index}
@@ -192,7 +201,7 @@ export default function MedicationsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
-      
+
       <WeeklyAdherenceCard
         days={weeklyAdherence}
         percentage={adherencePercentage}
