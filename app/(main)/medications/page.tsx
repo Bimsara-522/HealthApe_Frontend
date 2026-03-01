@@ -6,7 +6,7 @@
 'use client';
  
 import React from 'react';
-import { Plus, Pill, Check } from 'lucide-react';
+import { Plus, Pill, Check, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/UI/button';
  
@@ -155,6 +155,7 @@ function MedicationCard({ medication }: MedicationCardProps) {
           )}>
             {medication.frequency} • {medication.daysRemaining} days remaining
           </p>
+
         </div>
       </div>
     </div>
