@@ -149,6 +149,12 @@ function MedicationCard({ medication }: MedicationCardProps) {
             )}
           </div>
           
+          <p className={cn(
+            'text-sm mt-0.5',
+            isLowStock ? 'text-red-600' : 'text-gray-500'
+          )}>
+            {medication.frequency} • {medication.daysRemaining} days remaining
+          </p>
         </div>
       </div>
     </div>
