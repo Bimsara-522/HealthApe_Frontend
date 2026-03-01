@@ -85,13 +85,19 @@ function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceC
       </div>
       <div className="flex items-center justify-between sm:justify-start sm:gap-8">
         {days.map((day: DayAdherence, index: number) => (
-          <div key={index} className="flex flex-col items-center gap-2">
+          <button
+            key={index}
+            onClick={() => onToggleDay(index)}
+            className="flex flex-col items-center gap-2 group"
+          >
             <div
               className={cn(
                 'w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center',
+                'transition-all duration-200',
+                'group-hover:scale-110',
                 day.completed
-                  ? 'bg-green-100'
-                  : 'bg-gray-100'
+                  ? 'bg-green-100 group-hover:bg-green-200'
+                  : 'bg-gray-100 group-hover:bg-gray-200'
               )}
             >
               {day.completed && (
@@ -107,7 +113,7 @@ function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceC
             >
               {day.day}
             </span>
-          </div>
+          </button>
         ))}
       </div>
     </div>
