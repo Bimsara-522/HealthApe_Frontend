@@ -243,6 +243,21 @@ export default function MedicationsPage() {
     );
   };
 
+  // MENU STATE
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const handleEditMedication = (id: string) => {
+    console.log('Edit medication:', id);
+    // TODO: Open edit modal or navigate to edit page
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteMedication = (id: string) => {
+    console.log('Delete medication:', id);
+    // TODO: Show confirmation dialog, then delete
+    setOpenMenuId(null);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
