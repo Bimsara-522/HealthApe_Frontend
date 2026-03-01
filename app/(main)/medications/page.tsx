@@ -84,6 +84,12 @@ function PageHeader() {
 
 // WEEKLY ADHERENCE CARD
 
+interface WeeklyAdherenceCardProps {
+  days: DayAdherence[];
+  percentage: number;
+  onToggleDay: (index: number) => void;
+}
+
 function WeeklyAdherenceCard() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6">
