@@ -137,11 +137,18 @@ function MedicationCard({ medication }: MedicationCardProps) {
         <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
           <Pill className="w-6 h-6 text-purple-500" />
         </div>
-        <div>
-          <h3 className="font-semibold text-gray-900">{medication.name}</h3>
-          <p className="text-sm text-gray-500">
-            {medication.frequency} • {medication.daysRemaining} days remaining
-          </p>
+
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900">{medication.name}</h3>
+            
+            {isLowStock && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                Low Stock
+              </span>
+            )}
+          </div>
+          
         </div>
       </div>
     </div>
