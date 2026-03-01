@@ -5,7 +5,7 @@
  
 'use client';
  
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Pill, Check, Package, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/UI/button';
@@ -48,21 +48,7 @@ const medications: Medication[] = [
   },
 ];
  
-const weeklyAdherence: DayAdherence[] = [
-  { day: 'M', completed: true, isWeekend: false },
-  { day: 'T', completed: true, isWeekend: false },
-  { day: 'W', completed: true, isWeekend: false },
-  { day: 'T', completed: true, isWeekend: false },
-  { day: 'F', completed: true, isWeekend: false },
-  { day: 'S', completed: false, isWeekend: true },
-  { day: 'S', completed: false, isWeekend: true },
-];
- 
-// Calculate adherence percentage
-const completedDays = weeklyAdherence.filter(d => d.completed).length;
-const totalDays = weeklyAdherence.length;
-const adherencePercentage = Math.round((completedDays / totalDays) * 100);
- 
+
  
 // PAGE HEADER COMPONENT
  
@@ -90,15 +76,15 @@ interface WeeklyAdherenceCardProps {
   onToggleDay: (index: number) => void;
 }
 
-function WeeklyAdherenceCard() {
+function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceCardProps) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-900">Weekly Adherence</h2>
-        <span className="text-green-600 font-medium">{adherencePercentage}% On Track</span>
+        <span className="text-green-600 font-medium">{percentage}% On Track</span>
       </div>
       <div className="flex items-center justify-between sm:justify-start sm:gap-8">
-        {weeklyAdherence.map((day, index) => (
+        {days.map((day: DayAdherence, index: number) => (
           <div key={index} className="flex flex-col items-center gap-2">
             <div
               className={cn(
@@ -174,7 +160,7 @@ export default function MedicationsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
-      <WeeklyAdherenceCard />
+      
 
       <div className="space-y-4">
         {medications.length > 0 ? (
