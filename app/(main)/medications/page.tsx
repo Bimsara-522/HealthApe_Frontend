@@ -130,6 +130,7 @@ interface MedicationCardProps {
 }
 
 function MedicationCard({ medication }: MedicationCardProps) {
+  const isLowStock = medication.daysRemaining < 5;
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-center gap-4">
