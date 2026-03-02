@@ -17,7 +17,7 @@ import { useMedicalRecords, MedicalRecord } from '@/hooks/useMedicalRecords';
 //Constants
 
 //These match the category values saved during upload
-const CATEGORIES = ['Prescription', 'Lab Report', 'Imaging', 'Referral', 'Other'];
+const CATEGORIES = ['Prescription', 'Lab Report', 'Image/X-ray', 'Referral', 'Other'];
 
 //Helpers
 
@@ -321,7 +321,7 @@ export default function MedicalRecordsPage() {
     setCategoryFilter(null);
   };
 
-  const hasActiveFilters = search || categoryFilter;
+  const hasActiveFilters = search.length > 0 || categoryFilter !== null;
 
   //Loading
   if (loading) {
