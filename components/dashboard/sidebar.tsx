@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 
 
 // Import icons from lucide-react
@@ -43,13 +44,15 @@ const navigationItems = [
 interface SidebarProps {
   isOpen: boolean;      //Is sidebar visible on mobile?
   onClose: () => void;  //Function to close sidebar
+  onLogoutClick: () => void;
 }
 
 
 //Sidebar component
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
   //usePathname() gives us the current URL path
   //We use this to highlight the active menu item
+  const { logout } = useAuth();
   const pathname = usePathname();
 
   return (
@@ -147,8 +150,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="px-4 py-4 border-t border-gray-100">
           <button
             onClick={() => {
-              // TODO: Add actual logout logic later
-              console.log('Logout clicked');
+              onLogoutClick();
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) onClose();
             }}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 hover:bg-red-50 transition-all duration-200"
           >

@@ -1,5 +1,5 @@
 // All appointment API calls
-import api from 'lib/api' // Axios instance
+import api from 'lib/api/client' // Axios instance
 import type { Appointment, CreateAppointmentDto, UpdateAppointmentDto }  from 'app/(main)/appointments/types/appointment'
 import { mockAppointments } from 'app/(main)/appointments/lib/mock/appointments'
 

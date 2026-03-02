@@ -8,6 +8,7 @@ import { NewBookingButton } from '@/components/appointments/NewBookingButton'
 import { getAppointments } from 'app/(main)/appointments/lib/api/appointments'
 import { CalendarSkeleton } from './loading'
 import { AppointmentList } from '@/components/appointments/AppointmentList'
+import { ViewAllButton } from '@/components/appointments/ViewAllButton'
 
 export default async function AppointmentsPage() {
   // Fetch on the server — no loading spinner for initial render
@@ -40,7 +41,7 @@ export default async function AppointmentsPage() {
 
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Next Visit</h2>
-          <NewBookingButton />
+          <ViewAllButton />
           </div>
           {nextVisit && <NextVisitCard appointment = {nextVisit} />}
       </div>

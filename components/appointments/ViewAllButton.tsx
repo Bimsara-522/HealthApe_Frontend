@@ -9,7 +9,7 @@ export function ViewAllButton() {
   return (
     <button
       onClick={() => router.push('/appointments/all')}
-      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"> + New Booking
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"> View All
     </button>
   )
 }

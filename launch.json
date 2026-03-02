@@ -1,0 +1,6 @@
+{
+  "type": "node-terminal",
+  "request": "launch",
+  "name": "Debug Next.js",
+  "command": "npm run dev"
+}

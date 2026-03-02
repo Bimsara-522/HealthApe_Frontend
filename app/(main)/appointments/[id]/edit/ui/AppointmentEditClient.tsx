@@ -47,11 +47,12 @@ export default function AppointmentEditClient({ id }: { id: string }) {
   }
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Appointment</h1>
-        <p className="text-sm text-gray-500 mt-1">Update the date, time, or notes.</p>
-      </div>
+    <div className="p-6">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Appointment</h1>
+          <p className="text-sm text-gray-500 mt-1">Update the date, time, or notes.</p>
+        </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
         <div>
@@ -108,5 +109,6 @@ export default function AppointmentEditClient({ id }: { id: string }) {
         </div>
       </form>
     </div>
+  </div>
   )
 }
