@@ -17,7 +17,7 @@ import { useMedicalRecords, MedicalRecord } from '@/hooks/useMedicalRecords';
 //Constants
 
 //These match the category values saved during upload
-const CATEGORIES = ['LAB REPORT', 'IMAGING', 'REFERRAL', 'PRESCRIPTION', 'OTHER'];
+const CATEGORIES = ['Prescription', 'Lab Report', 'Imaging', 'Referral', 'Other'];
 
 //Helpers
 
@@ -295,8 +295,7 @@ function NoSearchResults({ onClear }: { onClear: () => void }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
+//Main Page
 export default function MedicalRecordsPage() {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -324,7 +323,7 @@ export default function MedicalRecordsPage() {
 
   const hasActiveFilters = search || categoryFilter;
 
-  // ── Loading ────────────────────────────────────────────────────────────────
+  //Loading
   if (loading) {
     return (
       <div className="space-y-6 animate-fade-in">
@@ -342,7 +341,7 @@ export default function MedicalRecordsPage() {
     );
   }
 
-  // ── Error ──────────────────────────────────────────────────────────────────
+  // Error 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
@@ -355,7 +354,7 @@ export default function MedicalRecordsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
 
-      {/* ── Toolbar ────────────────────────────────────────────────────────── */}
+      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4">
         <SearchBar value={search} onChange={setSearch} />
         <SortDropdown
@@ -379,7 +378,7 @@ export default function MedicalRecordsPage() {
         </Button>
       </div>
 
-      {/* ── Active filter chip ────────────────────────────────────────────── */}
+      {/* Active filter chip*/}
       {hasActiveFilters && (
         <div className="flex items-center gap-2 text-sm">
           <span className="text-gray-500">Filtering by:</span>
@@ -399,14 +398,14 @@ export default function MedicalRecordsPage() {
         </div>
       )}
 
-      {/* ── Record Count ──────────────────────────────────────────────────── */}
+      {/* Record Count */}
       {records.length > 0 && (
         <p className="text-sm text-gray-500">
           {records.length} record{records.length !== 1 ? 's' : ''} found
         </p>
       )}
 
-      {/* ── Records List ──────────────────────────────────────────────────── */}
+      {/*  Records List*/}
       <div className="space-y-4">
         {records.length === 0 ? (
           hasActiveFilters ? (
