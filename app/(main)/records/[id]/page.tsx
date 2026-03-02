@@ -1,5 +1,5 @@
-// URL: /records/[id]
-// Shows full details for a single medical record
+//URL: /records/[id]
+//Shows full details for a single medical record
 
 'use client';
 
@@ -7,11 +7,11 @@ import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, FileText, Calendar, User, Building2,
-  Tag, Download, Trash2,
+  Tag, Trash2,
 } from 'lucide-react';
+import { EyeIcon } from '@heroicons/react/24/outline';
 import { useMedicalRecord, useMedicalRecords } from '@/hooks/useMedicalRecords';
 import { Button } from '@/components/UI/button';
-import { cn } from '@/lib/utils';
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Not recorded';
@@ -70,15 +70,6 @@ export default function RecordDetailPage() {
     }
   };
 
-  const handleDownload = () => {
-    if (record?.fileUrl) {
-      window.open(
-        `${process.env.NEXT_PUBLIC_API_URL}${record.fileUrl}`,
-        '_blank',
-      );
-    }
-  };
-
   // Loading
   if (loading) {
     return (
@@ -96,7 +87,9 @@ export default function RecordDetailPage() {
       <div className="text-center py-16">
         <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Record not found</h2>
-        <p className="text-gray-500 mb-6">This record may have been deleted or you don&apos;t have access to it.</p>
+        <p className="text-gray-500 mb-6">
+          This record may have been deleted or you don&apos;t have access to it.
+        </p>
         <Button variant="primary" onClick={() => router.push('/records')}>
           Back to Records
         </Button>
@@ -107,7 +100,7 @@ export default function RecordDetailPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
 
-      {/* Back button*/}
+      {/* Back button */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors text-sm font-medium"
@@ -116,7 +109,7 @@ export default function RecordDetailPage() {
         Back to Records
       </button>
 
-      {/*  Header Card  */}
+      {/* Header Card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -136,16 +129,18 @@ export default function RecordDetailPage() {
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Action buttons */}
           <div className="flex items-center gap-2 flex-shrink-0">
             {record.fileUrl && (
-              <button
-                onClick={handleDownload}
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL}${record.fileUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                title="Download file"
+                title="Open document"
               >
-                <Download className="w-5 h-5" />
-              </button>
+                <EyeIcon className="w-5 h-5" />
+              </a>
             )}
             <button
               onClick={handleDelete}
@@ -158,27 +153,25 @@ export default function RecordDetailPage() {
         </div>
       </div>
 
-      {/*  Details Card  */}
+      {/* Details Card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-4">Record Details</h2>
-        <DetailRow icon={Calendar} label="Record Date" value={formatDate(record.date)} />
-        <DetailRow icon={User}     label="Doctor"      value={record.doctorName} />
+        <DetailRow icon={Calendar}  label="Record Date"       value={formatDate(record.date)} />
+        <DetailRow icon={User}      label="Doctor"            value={record.doctorName} />
         <DetailRow icon={Building2} label="Hospital / Clinic" value={record.hospital} />
-        <DetailRow icon={FileText} label="File"
+        <DetailRow icon={FileText}  label="File"
           value={record.fileName
             ? `${record.fileName} (${formatFileSize(record.fileSize)})`
             : null}
         />
-        <DetailRow icon={Tag} label="Uploaded"
-          value={formatDate(record.createdAt)} />
+        <DetailRow icon={Tag}       label="Uploaded"          value={formatDate(record.createdAt)} />
 
-        {/* No details at all */}
         {!record.date && !record.doctorName && !record.hospital && !record.fileName && (
           <p className="text-gray-400 text-sm text-center py-4">No additional details recorded.</p>
         )}
       </div>
 
-      {/* Extracted Text Card (if available)*/}
+      {/* Extracted Text Card */}
       {record.extractedText && (
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 mb-3">Extracted Text (OCR)</h2>
@@ -188,7 +181,7 @@ export default function RecordDetailPage() {
         </div>
       )}
 
-      {/* Extra Details Card (from form fields during upload) */}
+      {/* Extra Details Card */}
       {Object.keys(record.details).length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Additional Information</h2>
