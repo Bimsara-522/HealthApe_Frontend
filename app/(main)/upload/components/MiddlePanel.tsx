@@ -88,10 +88,10 @@ const uploadTypes: UploadTypeCard[] = [
 type FieldKey = keyof FormDataType;
 
 const fieldsByCategory: Record<UploadCategory, FieldKey[]> = {
-  "Prescription": ["medications", "dosage", "frequency", "doctorName", "hospital", "date", "diagnosis"],
+  Prescription: ["medications", "dosage", "frequency", "doctorName", "hospital", "date", "diagnosis"],
   "Lab Report": ["testName", "results", "hospital", "date"],
   "Image/X-ray": ["imagingType", "bodyPart", "findings", "hospital", "date"],
-  "Doctor Note": ["symptoms", "diagnosis", "doctorName", "hospital", "date"],
+  "Doctor Note": ["symptoms", "diagnosis", "doctorName", "hospital", "date", "notes"],
   "Insurance Document": ["provider", "policyNumber", "claimNumber", "coverageDetails", "date"],
 };
 
@@ -144,6 +144,9 @@ export default function MiddlePanel({
   const [validated, setValidated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [toast, setToast] = useState<null | { type: "success" | "error"; title: string; message?: string }>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatSize = (bytes: number) => {
@@ -155,35 +158,29 @@ export default function MiddlePanel({
 
   const resetForm = () => {
     setFormData({
-      // shared
-          doctorName: "",
-          hospital: "",
-          date: "",
+      doctorName: "",
+      hospital: "",
+      date: "",
 
-          // doctor note
-          symptoms: "",
-          diagnosis: "",
-          notes: "",
+      symptoms: "",
+      diagnosis: "",
+      notes: "",
 
-          // prescription
-          medications: "",
-          dosage: "",
-          frequency: "",
+      medications: "",
+      dosage: "",
+      frequency: "",
 
-          // lab
-          testName: "",
-          results: "",
+      testName: "",
+      results: "",
 
-          // imaging
-          imagingType: "",
-          bodyPart: "",
-          findings: "",
+      imagingType: "",
+      bodyPart: "",
+      findings: "",
 
-          // insurance
-          provider: "",
-          policyNumber: "",
-          claimNumber: "",
-          coverageDetails: "",
+      provider: "",
+      policyNumber: "",
+      claimNumber: "",
+      coverageDetails: "",
     });
   };
 
@@ -191,7 +188,6 @@ export default function MiddlePanel({
     setErrorMessage("");
     setValidated(false);
 
-    // ✅ Same as HTML: must select category first
     if (!selectedCategory) {
       setErrorMessage("Please select a document type before uploading.");
       return;
@@ -209,9 +205,10 @@ export default function MiddlePanel({
     setUploadedFile({
       id: crypto.randomUUID(),
       file,
-      category: selectedCategory, // ✅ always match selected type
+      category: selectedCategory,
       createdAt: Date.now(),
       status: "queued",
+      details: { medicationItems: [], metrics: [] }, // ✅ default
     });
   };
 
@@ -234,8 +231,16 @@ export default function MiddlePanel({
     setValidating(true);
     setLoading(true);
 
-    // Mark as validating
-    setUploadedFile((prev) => (prev ? { ...prev, status: "validating" } : null));
+    // ✅ Mark as validating (IMPORTANT)
+    setUploadedFile((prev) =>
+      prev
+        ? {
+            ...prev,
+            status: "validating",
+            validationError: undefined,
+          }
+        : null
+    );
 
     try {
       const fd = new FormData();
@@ -249,23 +254,17 @@ export default function MiddlePanel({
       });
 
       const raw = await res.text();
-        let data: any = {};
-        try {
-          data = JSON.parse(raw);
-        } catch {
-          data = { message: raw };
-        }
+      let data: any = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = { message: raw };
+      }
 
-        if (!res.ok) {
-          // show detail from your route.ts (it returns detail/ocrBody/etc.)
-          const msg =
-            data?.message ||
-            data?.detail ||
-            data?.ocrBody ||
-            raw ||
-            "Validation failed. Please try again.";
-          throw new Error(msg);
-        }
+      if (!res.ok) {
+        const msg = data?.message || data?.detail || raw || "Validation failed. Please try again.";
+        throw new Error(msg);
+      }
 
       if (!data.isMedical) {
         setUploadedFile((prev) =>
@@ -273,10 +272,10 @@ export default function MiddlePanel({
             ? {
                 ...prev,
                 status: "invalid",
-                validationError:
-                  data.reason || "This does not appear to be a valid medical document.",
+                validationError: data.reason || "This does not appear to be a valid medical document.",
                 ocrText: data.extractedText || undefined,
                 extractedFields: undefined,
+                details: { medicationItems: [], metrics: [] }, // ✅ NEW
               }
             : null
         );
@@ -288,7 +287,7 @@ export default function MiddlePanel({
         return;
       }
 
-      // Valid — auto-fill form
+      // ✅ Valid — store AI data + details
       setUploadedFile((prev) =>
         prev
           ? {
@@ -296,29 +295,31 @@ export default function MiddlePanel({
               status: "valid",
               ocrText: data.extractedText,
               extractedFields: data.extractedFields,
+              details: data.details || { medicationItems: [], metrics: [] }, // ✅ NEW
               validationError: undefined,
             }
           : null
       );
 
+      // ✅ Auto-fill only allowed fields for that category
       if (data.extractedFields) {
-  setFormData((prev) => {
-    const next = { ...prev };
-
-    const allowed = selectedCategory ? fieldsByCategory[selectedCategory] : [];
-    for (const k of allowed) {
-      const v = data.extractedFields?.[k];
-      if (typeof v === "string") next[k] = v as any;
-    }
-
-    return next;
-  });
-}
+        setFormData((prev) => {
+          const next = { ...prev };
+          const allowed = selectedCategory ? fieldsByCategory[selectedCategory] : [];
+          for (const k of allowed) {
+            const v = data.extractedFields?.[k];
+            if (typeof v === "string") next[k] = v as any;
+          }
+          return next;
+        });
+      }
 
       setValidated(true);
     } catch (err: any) {
       setErrorMessage(err?.message || "Something went wrong. Please try again.");
-      setUploadedFile((prev) => (prev ? { ...prev, status: "error" } : null));
+      setUploadedFile((prev) =>
+        prev ? { ...prev, status: "error", validationError: err?.message } : null
+      );
       setValidated(false);
     } finally {
       setValidating(false);
@@ -326,17 +327,17 @@ export default function MiddlePanel({
     }
   };
 
-const saveRecord = async () => {
-  if (!uploadedFile) {
-    setErrorMessage("No file to save.");
-    return;
-  }
+  const saveRecord = async () => {
+    if (!uploadedFile) {
+      setErrorMessage("No file to save.");
+      return;
+    }
 
-  setErrorMessage("");
-  setSaving(true);
+    setErrorMessage("");
+    setSaving(true);
 
-  try {
-          const fd = new FormData();
+    try {
+      const fd = new FormData();
       fd.append("file", uploadedFile.file);
       fd.append("category", selectedCategory || "");
 
@@ -345,46 +346,108 @@ const saveRecord = async () => {
         fd.append(String(k), (formData[k] ?? "") as string);
       }
 
+      // ✅ NEW: send details JSON for reminders + metrics
+      fd.append(
+        "detailsJson",
+        JSON.stringify(uploadedFile?.details ?? { medicationItems: [], metrics: [] })
+      );
+
       const res = await fetch(`${API_BASE}/medical-record`, {
-      method: "POST",
-      credentials: "include",
-      body: fd, // ✅ multipart
-    });    
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Failed to save record");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to save record");
+      }
+
+      setSaveSuccess(true);
+      setToast({
+        type: "success",
+        title: "Saved successfully!",
+        message: "Your medical record was added to Records.",
+      });
+      setTimeout(() => setToast(null), 10000);
+
+      setTimeout(() => {
+        resetForm();
+        setUploadedFile(null);
+        setSelectedCategory(null);
+        setValidated(false);
+        setSaveSuccess(false);
+        setErrorMessage("");
+      }, 1500);
+    } catch (err: any) {
+      const msg = err?.message || "Failed to save record. Please try again.";
+      setErrorMessage(msg);
+
+      setToast({
+        type: "error",
+        title: "Save failed",
+        message: msg,
+      });
+      setTimeout(() => setToast(null), 3000); // optional auto-hide
+    } finally {
+      setSaving(false);
     }
-
-    setSaveSuccess(true);
-
-    setTimeout(() => {
-      resetForm();
-      setUploadedFile(null);
-      setSelectedCategory(null);
-      setValidated(false);
-      setSaveSuccess(false);
-      setErrorMessage("");
-    }, 1500);
-  } catch (err: any) {
-    setErrorMessage(err?.message || "Failed to save record. Please try again.");
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   const busy = loading || validating || saving;
 
-  // ✅ canValidate allows retry (valid/invalid/error), only block while validating
   const canValidate = !!uploadedFile && !!selectedCategory && uploadedFile.status !== "validating";
-
-  // ✅ save enabled only after validated
   const canSave = validated;
 
   const activeFields = selectedCategory ? fieldsByCategory[selectedCategory] : [];
+
   return (
     <div className="space-y-6 pb-28 lg:pb-0">
+    {toast && (
+      <div
+        className={`flex items-start gap-3 rounded-xl border p-3.5 ${
+          toast.type === "success"
+            ? "border-emerald-200 bg-emerald-50"
+            : "border-red-200 bg-red-50"
+        }`}
+      >
+        {toast.type === "success" ? (
+          <CheckCircleIcon className="mt-0.5 h-5 w-5 text-emerald-600" />
+        ) : (
+          <ExclamationCircleIcon className="mt-0.5 h-5 w-5 text-red-600" />
+        )}
 
+        <div className="flex-1">
+          <p
+            className={`text-sm font-semibold ${
+              toast.type === "success" ? "text-emerald-800" : "text-red-800"
+            }`}
+          >
+            {toast.title}
+          </p>
+          {toast.message && (
+            <p
+              className={`mt-0.5 text-xs ${
+                toast.type === "success" ? "text-emerald-700" : "text-red-700"
+              }`}
+            >
+              {toast.message}
+            </p>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setToast(null)}
+          className={`rounded-lg p-1 ${
+            toast.type === "success" ? "text-emerald-600 hover:bg-emerald-100" : "text-red-600 hover:bg-red-100"
+          }`}
+          aria-label="Close"
+        >
+          <XCircleIcon className="h-5 w-5" />
+        </button>
+      </div>
+    )}
       {/* Step 1: Upload Type */}
       <section>
         <div className="mb-3 flex items-center gap-2">
@@ -404,7 +467,6 @@ const saveRecord = async () => {
                 type="button"
                 onClick={() => {
                   setSelectedCategory(t.category);
-                  // ✅ keep file category in sync if already chosen
                   if (uploadedFile) {
                     setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
                   }
@@ -617,7 +679,6 @@ const saveRecord = async () => {
           <p className="mt-2 text-center text-[11px] text-amber-500">Select a document type to enable validation.</p>
         )}
 
-        {/* Validation error */}
         {errorMessage && (
           <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5">
             <ExclamationCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
@@ -631,7 +692,6 @@ const saveRecord = async () => {
           </div>
         )}
 
-        {/* Validation success */}
         {validated && uploadedFile?.status === "valid" && (
           <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5">
             <CheckCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
@@ -645,64 +705,62 @@ const saveRecord = async () => {
         )}
       </section>
 
-      {/* Step 4: Review Form (✅ EXACT like HTML: disabled until validated) */}
+      {/* Step 4: Review Form */}
       <section>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-  {activeFields.map((key) => {
-    const meta = fieldMeta[key];
-    const value = (formData[key] ?? "") as string;
+          {activeFields.map((key) => {
+            const meta = fieldMeta[key];
+            const value = (formData[key] ?? "") as string;
+            const wide = meta.type === "textarea";
 
-    // Full width for textareas
-    const wide = meta.type === "textarea";
+            if (meta.type === "date") {
+              return (
+                <div key={String(key)} className={wide ? "lg:col-span-2" : ""}>
+                  <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
+                  <input
+                    type="date"
+                    name={String(key)}
+                    value={value}
+                    onChange={handleInputChange}
+                    disabled={!validated}
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+                  />
+                </div>
+              );
+            }
 
-    if (meta.type === "date") {
-      return (
-        <div key={String(key)} className={wide ? "lg:col-span-2" : ""}>
-          <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
-          <input
-            type="date"
-            name={String(key)}
-            value={value}
-            onChange={handleInputChange}
-            disabled={!validated}
-            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-          />
+            if (meta.type === "textarea") {
+              return (
+                <div key={String(key)} className="lg:col-span-2">
+                  <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
+                  <textarea
+                    name={String(key)}
+                    value={value}
+                    onChange={handleInputChange}
+                    placeholder={meta.placeholder}
+                    rows={3}
+                    disabled={!validated}
+                    className="mt-1 w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+                  />
+                </div>
+              );
+            }
+
+            return (
+              <div key={String(key)} className={wide ? "lg:col-span-2" : ""}>
+                <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
+                <input
+                  name={String(key)}
+                  value={value}
+                  onChange={handleInputChange}
+                  placeholder={meta.placeholder}
+                  disabled={!validated}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
+                />
+              </div>
+            );
+          })}
         </div>
-      );
-    }
-
-    if (meta.type === "textarea") {
-      return (
-        <div key={String(key)} className="lg:col-span-2">
-          <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
-          <textarea
-            name={String(key)}
-            value={value}
-            onChange={handleInputChange}
-            placeholder={meta.placeholder}
-            rows={3}
-            disabled={!validated}
-            className="mt-1 w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div key={String(key)} className={wide ? "lg:col-span-2" : ""}>
-        <label className="block text-[11px] font-medium text-slate-500">{meta.label}</label>
-        <input
-          name={String(key)}
-          value={value}
-          onChange={handleInputChange}
-          placeholder={meta.placeholder}
-          disabled={!validated}
-          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
-        />
-      </div>
-    );
-  })}
-</div>
       </section>
 
       {/* Step 5: Save */}
