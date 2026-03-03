@@ -254,12 +254,17 @@ export default function MiddlePanel({
       });
 
       const raw = await res.text();
+      console.log("AI RAW:", raw); // ✅ add
+
       let data: any = {};
       try {
         data = JSON.parse(raw);
       } catch {
         data = { message: raw };
       }
+
+        console.log("AI PARSED extractedFields:", data?.extractedFields); // ✅ add
+        console.log("AI PARSED details:", data?.details); // ✅ add
 
       if (!res.ok) {
         const msg = data?.message || data?.detail || raw || "Validation failed. Please try again.";

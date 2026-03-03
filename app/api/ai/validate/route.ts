@@ -335,6 +335,7 @@ GENERAL:
 - details.medicationItems and details.metrics must always be arrays (can be empty).
 - Do not invent information.
 - If unsure, use null.
+- extractedFields.results must reflect the document table, not interpretation.
 
 --------------------------------------------------
 CATEGORY-SPECIFIC RULES
@@ -353,7 +354,23 @@ Each item must include:
   instructions (string or null)
 
 Lab Report:
-- Fill details.metrics[] for insights graphs.
+- extractedFields.testName MUST be the panel name (e.g., "Full Blood Count (FBC)" / "Complete Blood Count (CBC)").
+- extractedFields.hospital MUST be the lab name from the report header (e.g., "ASIRI MEDICAL LABORATORY").
+- extractedFields.results MUST be a multi-line structured list of results in this format:
+
+"Hemoglobin (Hb): 14.1 g/dL (Ref: 13.0–17.0)
+White Blood Cells (WBC): 6.8 x10^9/L (Ref: 4.0–10.0)
+Platelets: 240 x10^9/L (Ref: 150–400)"
+
+RULES:
+- One line per visible parameter.
+- Include reference range if visible.
+- If reference range not visible, omit the "(Ref: ...)" part.
+- Do NOT write generic summaries like "low values" or "borderline" unless the report literally states it.
+
+Also populate details.metrics[]:
+- Create ONE metric per parameter clearly visible.
+- Do NOT invent rows.
 
 Doctor Note:
 - If vitals (BP, sugar, Hb, etc.) are present, also populate details.metrics[].
@@ -456,7 +473,7 @@ STRICT OUTPUT REQUIREMENTS
       content.push({
         type: "input_image",
         image_url: `data:${mime};base64,${base64}`,
-        detail: "auto",
+        detail: "high",
       });
     }
 
