@@ -342,16 +342,79 @@ CATEGORY-SPECIFIC RULES
 --------------------------------------------------
 
 Prescription:
-- Fill medicationItems[] for reminder system.
-Each item must include:
-  name (string)
-  strength (string or null)
-  doseQuantity (number or null)
-  doseUnit (string or null)
-  scheduleTimes (array of "HH:mm" strings)
-  startDate (YYYY-MM-DD or null)
-  endDate (YYYY-MM-DD or null)
-  instructions (string or null)
+
+You MUST populate BOTH:
+A) extractedFields (for UI auto-fill)
+B) details.medicationItems[] (for reminders)
+
+--------------------------------------------------
+PRESCRIPTION AUTO-FILL MAPPING RULES
+--------------------------------------------------
+
+1) extractedFields.medications:
+- Comma-separated UNIQUE medicine names.
+- Example: "CALPOL, DELCON, LEVOLIN, MEFTAL-P"
+- If none found → null
+
+2) extractedFields.dosage:
+- Multi-line format:
+  "<Drug> <strength if visible> - <doseQuantity><doseUnit>"
+- Example:
+  "CALPOL 250/5 - 4 ml
+   DELCON - 3 ml"
+- If unclear → null
+
+3) extractedFields.frequency:
+- Multi-line format:
+  "<Drug> - <frequency text> (<duration if visible>)"
+- Example:
+  "CALPOL - Q6H (3 days)
+   DELCON - TDS (5 days)"
+- If unclear → null
+
+4) extractedFields.diagnosis:
+- Use only if explicitly written (Clinical Description / Dx / Impression)
+- If unclear → null
+
+5) extractedFields.doctorName / hospital:
+- Only if clearly visible in header or stamp
+- If unclear → null (DO NOT GUESS)
+
+--------------------------------------------------
+MEDICATIONITEMS STRICT RULES
+--------------------------------------------------
+
+For each medication line create one item:
+
+- name (string)
+- strength (string or null)
+- doseQuantity (number or null)
+- doseUnit (string or null)
+- scheduleTimes (array of "HH:mm")
+- startDate (YYYY-MM-DD or null)
+- endDate (YYYY-MM-DD or null)
+- instructions (string or null)
+
+ABBREVIATION RULES:
+- TDS = 3 times daily
+- BD = 2 times daily
+- OD = once daily
+- Q6H = every 6 hours
+- SOS = as needed
+- x 3 d / x 5 d = duration days
+
+SCHEDULE TIMES:
+- TDS → ["08:00","14:00","20:00"]
+- BD → ["08:00","20:00"]
+- OD → ["08:00"]
+- Q6H → scheduleTimes = [] (put "Q6H" in instructions)
+- SOS → scheduleTimes = []
+
+DATE RULE:
+- If explicit start date → use it
+- Else if document-level date exists → startDate = document date
+- Else → null
+- If no end date → endDate = null
 
 Lab Report:
 - extractedFields.testName MUST be the panel name (e.g., "Full Blood Count (FBC)" / "Complete Blood Count (CBC)").
