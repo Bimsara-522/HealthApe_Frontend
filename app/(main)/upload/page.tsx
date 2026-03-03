@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation';
 export default function UploadRecordPage() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') as UploadCategory | null;
+  const lockedToCategory = searchParams.get('category') !== null;
 
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,6 +77,7 @@ export default function UploadRecordPage() {
                 onDeleteFile={handleDelete}
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
+                lockedToCategory={lockedToCategory}
               />
             </div>
           </div>

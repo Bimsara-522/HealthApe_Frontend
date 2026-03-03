@@ -31,6 +31,7 @@ type Props = {
   onDeleteFile: () => void;
   selectedCategory: UploadCategory | null;
   setSelectedCategory: React.Dispatch<React.SetStateAction<UploadCategory | null>>;
+  lockedToCategory?: boolean;
 };
 
 interface UploadTypeCard {
@@ -137,6 +138,7 @@ export default function MiddlePanel({
   onDeleteFile,
   selectedCategory,
   setSelectedCategory,
+  lockedToCategory,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -468,20 +470,27 @@ export default function MiddlePanel({
             const isSelected = selectedCategory === t.category;
             return (
               <button
-                key={t.category}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(t.category);
-                  if (uploadedFile) {
-                    setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
-                  }
-                }}
-                className={`group relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-center transition-all duration-150 ${
-                  isSelected
-                    ? `border-blue-500 ${t.bg} ring-2 ${t.ring} ring-offset-1`
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                }`}
-              >
+               key={t.category}
+               type="button"
+               // Disable other categories when navigating from "Add Med" button
+               disabled={lockedToCategory && !isSelected}
+               onClick={() => {
+                 // Prevent switching category when locked (coming from Add Med)
+                 if (lockedToCategory && !isSelected) return;
+                 setSelectedCategory(t.category);
+                 if (uploadedFile) {
+                  setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
+                }
+              }}
+              className={`group relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-center transition-all duration-150 ${
+                // Grey out non-prescription cards when locked to a category
+                lockedToCategory && !isSelected
+                ? 'border-slate-200 bg-slate-50 opacity-40 cursor-not-allowed'
+                : isSelected
+                ? `border-blue-500 ${t.bg} ring-2 ${t.ring} ring-offset-1`
+                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+              }`}
+            >
                 <div
                   className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                     isSelected ? t.bg : "bg-slate-100 group-hover:bg-slate-200"
