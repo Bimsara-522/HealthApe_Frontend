@@ -57,9 +57,7 @@ interface DayAdherence {
  
 // SAMPLE DATA
  
-// ============================================
-// SAMPLE DATA
-// ============================================
+
 
 const medications: Medication[] = [
   {
@@ -254,7 +252,7 @@ interface MedicationCardProps {
 }
 
 function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete }: MedicationCardProps) {
-  const isLowStock = medication.daysRemaining < 5;
+  const isLowStock = medication.remainingQuantity < 5;
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex items-center gap-4">
@@ -277,7 +275,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
             'text-sm mt-0.5',
             isLowStock ? 'text-red-600' : 'text-gray-500'
           )}>
-            {medication.frequency} • {medication.daysRemaining} days remaining
+            {medication.frequency} • {medication.remainingQuantity} left
           </p>
 
         </div>
