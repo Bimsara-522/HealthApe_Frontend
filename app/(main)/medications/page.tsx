@@ -639,13 +639,23 @@ export default function MedicationsPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader />
 
+      {/* Today's Schedule - The Main Feature! */}
+      <TodaysSchedule
+        doses={todaysSchedule}
+        onMarkTaken={handleMarkTaken}
+        onMarkSkipped={handleMarkSkipped}
+      />
+
+      {/* Weekly Adherence */}
       <WeeklyAdherenceCard
         days={weeklyAdherence}
         percentage={adherencePercentage}
         onToggleDay={handleToggleDay}
       />
-      
+
+      {/* All Medications */}
       <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">All Medications</h2>
         {medications.length > 0 ? (
           medications.map((medication) => (
             <MedicationCard
