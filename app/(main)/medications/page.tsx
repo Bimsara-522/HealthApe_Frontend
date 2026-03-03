@@ -596,6 +596,33 @@ export default function MedicationsPage() {
   // MENU STATE
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  // TODAY'S DOSES STATE
+  const [todaysSchedule, setTodaysSchedule] = useState<ScheduledDose[]>(todaysDoses);
+
+  // HANDLERS FOR DOSES
+  const handleMarkTaken = (doseId: string) => {
+    const now = new Date();
+    const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    setTodaysSchedule(prev =>
+      prev.map(dose =>
+        dose.id === doseId
+          ? { ...dose, status: 'taken' as const, takenAt: timeString }
+          : dose
+      )
+    );
+  };
+
+  const handleMarkSkipped = (doseId: string) => {
+    setTodaysSchedule(prev =>
+      prev.map(dose =>
+        dose.id === doseId
+          ? { ...dose, status: 'skipped' as const }
+          : dose
+      )
+    );
+  };
+
   const handleEditMedication = (id: string) => {
     console.log('Edit medication:', id);
     // TODO: Open edit modal or navigate to edit page
