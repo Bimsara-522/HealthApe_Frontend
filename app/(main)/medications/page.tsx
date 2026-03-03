@@ -330,6 +330,75 @@ function DoseItem({ dose, onMarkTaken, onMarkSkipped }: DoseItemProps) {
     </div>
   );
 }
+
+// TODAY'S SCHEDULE COMPONENT
+
+interface TodaysScheduleProps {
+  doses: ScheduledDose[];
+  onMarkTaken: (doseId: string) => void;
+  onMarkSkipped: (doseId: string) => void;
+}
+
+function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysScheduleProps) {
+  // Group doses by time
+  const groupedDoses = groupDosesByTime(doses);
+  
+  // Sort times chronologically
+  const sortedTimes = Array.from(groupedDoses.keys()).sort();
+  
+  // Find the first upcoming time slot with pending doses
+  let foundNext = false;
+  
+  // Get today's date formatted
+  const today = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+  
+  // Calculate today's progress
+  const completedCount = doses.filter(d => d.status === 'taken').length;
+  const totalCount = doses.length;
+  
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Today's Schedule</h2>
+          <p className="text-sm text-gray-500">{today}</p>
+        </div>
+        <div className="text-right">
+          <span className="text-2xl font-bold text-blue-600">{completedCount}/{totalCount}</span>
+          <p className="text-sm text-gray-500">doses taken</p>
+        </div>
+      </div>
+      
+      {/* Time Slots */}
+      <div className="space-y-3">
+        {sortedTimes.map(time => {
+          const timeDoses = groupedDoses.get(time) || [];
+          const hasPending = timeDoses.some(d => d.status === 'pending');
+          const isNext = !foundNext && hasPending && isNextUpcoming(time, timeDoses);
+          
+          if (isNext) foundNext = true;
+          
+          return (
+            <TimeSlot
+              key={time}
+              time={time}
+              doses={timeDoses}
+              isNext={isNext}
+              onMarkTaken={onMarkTaken}
+              onMarkSkipped={onMarkSkipped}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
  
 // PAGE HEADER COMPONENT
  
