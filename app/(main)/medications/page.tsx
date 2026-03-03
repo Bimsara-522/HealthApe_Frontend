@@ -149,6 +149,43 @@ const todaysDoses: ScheduledDose[] = [
 ];
  
 
+// HELPER FUNCTIONS
+
+// Group doses by scheduled time
+function groupDosesByTime(doses: ScheduledDose[]): Map<string, ScheduledDose[]> {
+  const grouped = new Map<string, ScheduledDose[]>();
+  
+  doses.forEach(dose => {
+    const existing = grouped.get(dose.scheduledTime) || [];
+    grouped.set(dose.scheduledTime, [...existing, dose]);
+  });
+  
+  return grouped;
+}
+
+// Format time for display (08:00 → 8:00 AM)
+function formatTime(time: string): string {
+  const [hours, minutes] = time.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+// Check if a time slot is the next upcoming one
+function isNextUpcoming(time: string, doses: ScheduledDose[]): boolean {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  
+  const [hours, minutes] = time.split(':').map(Number);
+  const slotMinutes = hours * 60 + minutes;
+  
+  // Check if this slot has any pending doses
+  const hasPending = doses.some(d => d.status === 'pending');
+  if (!hasPending) return false;
+  
+  // Check if this is the next upcoming slot
+  return slotMinutes >= currentMinutes;
+}
  
 // PAGE HEADER COMPONENT
  
