@@ -5,11 +5,15 @@ import { useState } from "react";
 import MiddlePanel from "./components/MiddlePanel";
 import RightPanel from "./components/RightPanel";
 import type { UploadedFile, FormDataType, UploadCategory } from "./type/type";
+import { useSearchParams } from 'next/navigation';
 
 export default function UploadRecordPage() {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get('category') as UploadCategory | null;
+
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<UploadCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<UploadCategory | null>(initialCategory);
 
   const [formData, setFormData] = useState<FormDataType>({
   // shared

@@ -6,10 +6,11 @@
 'use client';
  
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, Pill, Check, Package, MoreVertical, Pencil, Trash2, Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/UI/button';
- 
+
 // TYPE DEFINITIONS
  
 interface Medication {
@@ -403,6 +404,8 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
 // PAGE HEADER COMPONENT
  
 function PageHeader() {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -410,7 +413,11 @@ function PageHeader() {
         <p className="text-gray-500 mt-1">Track adherence and refills.</p>
       </div>
       
-      <Button variant="primary" className="flex items-center gap-2 self-start sm:self-center">
+      <Button
+        variant="primary"
+        className="flex items-center gap-2 self-start sm:self-center"
+        onClick={() => router.push('/upload?category=Prescription')}
+      >
         <Plus className="w-5 h-5" />
         <span>Add Med</span>
       </Button>
@@ -502,36 +509,96 @@ interface MedicationCardProps {
 }
 
 function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete }: MedicationCardProps) {
-  const isLowStock = medication.remainingQuantity < 5;
+  const isLowStock = medication.remainingQuantity <= medication.refillReminderDays;
+  
+  // Calculate days until end (if not ongoing)
+  const daysUntilEnd = medication.endDate 
+    ? Math.ceil((new Date(medication.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer">
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-4">
+        {/* Pill Icon */}
+        <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
           <Pill className="w-6 h-6 text-purple-500" />
         </div>
 
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900">{medication.name}</h3>
+        {/* Medication Info */}
+        <div className="flex-1 min-w-0">
+          {/* Name + Dosage + Badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-gray-900">
+              {medication.name} <span className="text-gray-500 font-normal">{medication.dosage}</span>
+            </h3>
             
+            {/* Form badge */}
+            <span className="text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full capitalize">
+              {medication.form}
+            </span>
+            
+            {/* Low stock warning */}
             {isLowStock && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+              <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
                 Low Stock
+              </span>
+            )}
+            
+            {/* Unverified instructions warning */}
+            {!medication.instructionsVerified && (
+              <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                ⚠️ Verify instructions
               </span>
             )}
           </div>
           
-          <p className={cn(
-            'text-sm mt-0.5',
-            isLowStock ? 'text-red-600' : 'text-gray-500'
-          )}>
-            {medication.frequency} • {medication.remainingQuantity} left
+          {/* Frequency + Times */}
+          <p className="text-sm text-gray-600 mt-1">
+            {medication.frequency} · {medication.times.map(t => formatTime(t)).join(', ')}
           </p>
-
+          
+          {/* Instructions */}
+          <p className="text-sm text-gray-500 mt-1">
+            📋 {medication.instructions}
+          </p>
+          
+          {/* Bottom row: Duration + Stock + Doctor */}
+          <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 flex-wrap">
+            {/* Duration */}
+            {medication.isOngoing ? (
+              <span className="flex items-center gap-1">
+                🔄 Ongoing
+              </span>
+            ) : (
+              <span className={cn(
+                'flex items-center gap-1',
+                daysUntilEnd !== null && daysUntilEnd <= 3 ? 'text-amber-600' : ''
+              )}>
+                📅 {daysUntilEnd !== null && daysUntilEnd > 0 
+                  ? `${daysUntilEnd} days left` 
+                  : 'Ended'}
+              </span>
+            )}
+            
+            {/* Stock */}
+            <span className={cn(
+              'flex items-center gap-1',
+              isLowStock ? 'text-red-600 font-medium' : ''
+            )}>
+              💊 {medication.remainingQuantity} {medication.form}s left
+            </span>
+            
+            {/* Doctor */}
+            {medication.prescribedBy && (
+              <span className="flex items-center gap-1">
+                👨‍⚕️ {medication.prescribedBy}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Actions Menu */}
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <button
             onClick={onToggleMenu}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -567,6 +634,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
 // MAIN PAGE COMPONENT
  
 export default function MedicationsPage() {
+  const router = useRouter();
   // STATE
   const [weeklyAdherence, setWeeklyAdherence] = useState<DayAdherence[]>([
     { day: 'M', completed: true, isWeekend: false },
@@ -681,7 +749,10 @@ export default function MedicationsPage() {
             <p className="text-gray-500 mb-4">
               Add your first medication to start tracking adherence
             </p>
-            <Button variant="primary" className="inline-flex items-center gap-2">
+            <Button
+            variant="primary"
+            className="inline-flex items-center gap-2"onClick={() => router.push('/upload?category=Prescription')}
+            >
               <Plus className="w-5 h-5" />
               <span>Add Medication</span>
             </Button>
