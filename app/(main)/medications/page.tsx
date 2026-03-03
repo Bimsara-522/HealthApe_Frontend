@@ -652,11 +652,26 @@ export default function MedicationsPage() {
     setOpenMenuId(null);
   };
 
-  const handleDeleteMedication = (id: string) => {
-    console.log('Delete medication:', id);
-    // TODO: Show confirmation dialog, then delete
+  const handleDeleteMedication = async (id: string) => {
+  try {
+    const res = await fetch(`${API_BASE}/medication/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (!res.ok) throw new Error('Failed to delete');
+
+    // Remove from medications list
+    setMedications(prev => prev.filter(m => m.id !== id));
+
+    // Remove from today's schedule
+    setTodaysSchedule(prev => prev.filter(d => d.medicationId !== id));
+
     setOpenMenuId(null);
-  };
+  } catch (err) {
+    console.error('Failed to delete medication:', err);
+  }
+};
 
   return (
     <div className="space-y-6 animate-fade-in">
