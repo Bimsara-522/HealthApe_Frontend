@@ -5,7 +5,7 @@
  
 'use client';
  
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Pill, Check, Package, MoreVertical, Pencil, Trash2, Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -60,94 +60,9 @@ interface DayAdherence {
  
 
 
-const medications: Medication[] = [
-  {
-    id: '1',
-    name: 'Amoxicillin',
-    dosage: '500mg',
-    form: 'capsule',
-    frequency: '3x daily',
-    times: ['08:00', '14:00', '20:00'],
-    instructions: 'Take with food',
-    instructionsVerified: true,
-    startDate: '2025-03-01',
-    endDate: '2025-03-14',
-    isOngoing: false,
-    remainingQuantity: 12,
-    refillReminderDays: 5,
-    prescribedBy: 'Dr. Emily Chen',
-  },
-  {
-    id: '2',
-    name: 'Vitamin D',
-    dosage: '1000IU',
-    form: 'tablet',
-    frequency: '1x daily',
-    times: ['08:00'],
-    instructions: 'Take with meal',
-    instructionsVerified: true,
-    startDate: '2025-01-01',
-    isOngoing: true,
-    remainingQuantity: 24,
-    refillReminderDays: 7,
-  },
-  {
-    id: '3',
-    name: 'Lisinopril',
-    dosage: '10mg',
-    form: 'tablet',
-    frequency: '1x daily',
-    times: ['20:00'],
-    instructions: 'Take at the same time each day',
-    instructionsVerified: false,
-    startDate: '2025-02-01',
-    isOngoing: true,
-    remainingQuantity: 8,
-    refillReminderDays: 5,
-    prescribedBy: 'Dr. Sarah Corner',
-  },
-];
 
-// Today's scheduled doses (would come from backend based on current date)
-const todaysDoses: ScheduledDose[] = [
-  {
-    id: 'd1',
-    medicationId: '1',
-    medication: medications[0],
-    scheduledTime: '08:00',
-    status: 'taken',
-    takenAt: '08:05',
-  },
-  {
-    id: 'd2',
-    medicationId: '2',
-    medication: medications[1],
-    scheduledTime: '08:00',
-    status: 'taken',
-    takenAt: '08:05',
-  },
-  {
-    id: 'd3',
-    medicationId: '1',
-    medication: medications[0],
-    scheduledTime: '14:00',
-    status: 'pending',
-  },
-  {
-    id: 'd4',
-    medicationId: '1',
-    medication: medications[0],
-    scheduledTime: '20:00',
-    status: 'pending',
-  },
-  {
-    id: 'd5',
-    medicationId: '3',
-    medication: medications[2],
-    scheduledTime: '20:00',
-    status: 'pending',
-  },
-];
+
+
  
 
 // HELPER FUNCTIONS
@@ -633,8 +548,51 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
  
 // MAIN PAGE COMPONENT
  
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+
 export default function MedicationsPage() {
   const router = useRouter();
+
+  // API STATE
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [todaysSchedule, setTodaysSchedule] = useState<ScheduledDose[]>([]);
+  const [loadingMeds, setLoadingMeds] = useState(true);
+
+  // Fetch medications from API
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/medication`, {
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data: Medication[] = await res.json();
+        setMedications(data);
+
+        // Build today's doses from fetched medications
+        const doses: ScheduledDose[] = [];
+        data.forEach((med) => {
+          (med.times ?? []).forEach((time, index) => {
+            doses.push({
+              id: `${med.id}-${index}`,
+              medicationId: med.id,
+              medication: med,
+              scheduledTime: time,
+              status: 'pending',
+            });
+          });
+        });
+        setTodaysSchedule(doses);
+      } catch (err) {
+        console.error('Failed to load medications:', err);
+      } finally {
+        setLoadingMeds(false);
+      }
+    };
+
+    fetchMedications();
+  }, []);
+
   // STATE
   const [weeklyAdherence, setWeeklyAdherence] = useState<DayAdherence[]>([
     { day: 'M', completed: true, isWeekend: false },
@@ -663,9 +621,6 @@ export default function MedicationsPage() {
 
   // MENU STATE
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
-  // TODAY'S DOSES STATE
-  const [todaysSchedule, setTodaysSchedule] = useState<ScheduledDose[]>(todaysDoses);
 
   // HANDLERS FOR DOSES
   const handleMarkTaken = (doseId: string) => {
