@@ -186,6 +186,69 @@ function isNextUpcoming(time: string, doses: ScheduledDose[]): boolean {
   // Check if this is the next upcoming slot
   return slotMinutes >= currentMinutes;
 }
+
+
+// TIME SLOT COMPONENT
+
+interface TimeSlotProps {
+  time: string;
+  doses: ScheduledDose[];
+  isNext: boolean;
+  onMarkTaken: (doseId: string) => void;
+  onMarkSkipped: (doseId: string) => void;
+}
+
+function TimeSlot({ time, doses, isNext, onMarkTaken, onMarkSkipped }: TimeSlotProps) {
+  // Check if all doses in this slot are completed
+  const allCompleted = doses.every(d => d.status === 'taken' || d.status === 'skipped');
+  
+  return (
+    <div className={cn(
+      'bg-white rounded-2xl border p-4',
+      isNext ? 'border-blue-300 ring-2 ring-blue-100' : 'border-gray-100'
+    )}>
+      {/* Time Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Clock className={cn(
+            'w-5 h-5',
+            allCompleted ? 'text-green-500' : isNext ? 'text-blue-500' : 'text-gray-400'
+          )} />
+          <span className={cn(
+            'font-semibold',
+            allCompleted ? 'text-green-600' : isNext ? 'text-blue-600' : 'text-gray-700'
+          )}>
+            {formatTime(time)}
+          </span>
+        </div>
+        
+        {isNext && !allCompleted && (
+          <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+            NEXT
+          </span>
+        )}
+        
+        {allCompleted && (
+          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
+            DONE
+          </span>
+        )}
+      </div>
+      
+      {/* Doses List */}
+      <div className="space-y-2">
+        {doses.map(dose => (
+          <DoseItem 
+            key={dose.id} 
+            dose={dose} 
+            onMarkTaken={() => onMarkTaken(dose.id)}
+            onMarkSkipped={() => onMarkSkipped(dose.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
  
 // PAGE HEADER COMPONENT
  
