@@ -249,6 +249,87 @@ function TimeSlot({ time, doses, isNext, onMarkTaken, onMarkSkipped }: TimeSlotP
     </div>
   );
 }
+
+
+// DOSE ITEM COMPONENT
+
+interface DoseItemProps {
+  dose: ScheduledDose;
+  onMarkTaken: () => void;
+  onMarkSkipped: () => void;
+}
+
+function DoseItem({ dose, onMarkTaken, onMarkSkipped }: DoseItemProps) {
+  const { medication, status, takenAt } = dose;
+  
+  return (
+    <div className={cn(
+      'flex items-center gap-3 p-3 rounded-xl',
+      status === 'taken' ? 'bg-green-50' :
+      status === 'skipped' ? 'bg-gray-50' :
+      status === 'missed' ? 'bg-red-50' :
+      'bg-gray-50'
+    )}>
+      {/* Status Icon */}
+      <div className={cn(
+        'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+        status === 'taken' ? 'bg-green-100' :
+        status === 'skipped' ? 'bg-gray-200' :
+        status === 'missed' ? 'bg-red-100' :
+        'bg-white border-2 border-gray-200'
+      )}>
+        {status === 'taken' && <Check className="w-4 h-4 text-green-600" />}
+        {status === 'skipped' && <span className="text-gray-400 text-xs">—</span>}
+        {status === 'missed' && <AlertCircle className="w-4 h-4 text-red-500" />}
+      </div>
+      
+      {/* Medication Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className={cn(
+            'font-medium',
+            status === 'taken' ? 'text-green-700' :
+            status === 'skipped' ? 'text-gray-500 line-through' :
+            'text-gray-900'
+          )}>
+            {medication.name} {medication.dosage}
+          </span>
+          
+          {!medication.instructionsVerified && (
+            <span className="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+              ⚠️ Verify
+            </span>
+          )}
+        </div>
+        
+        <p className="text-sm text-gray-500">
+          {medication.instructions}
+          {status === 'taken' && takenAt && (
+            <span className="text-green-600"> · Taken at {formatTime(takenAt)}</span>
+          )}
+        </p>
+      </div>
+      
+      {/* Action Buttons - Only show for pending */}
+      {status === 'pending' && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onMarkSkipped}
+            className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            onClick={onMarkTaken}
+            className="px-3 py-1.5 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+          >
+            Take
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
  
 // PAGE HEADER COMPONENT
  
