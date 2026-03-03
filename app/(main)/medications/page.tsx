@@ -679,7 +679,11 @@ export default function MedicationsPage() {
       {/* All Medications */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">All Medications</h2>
-        {medications.length > 0 ? (
+        {loadingMeds ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+            <p className="text-gray-400 text-sm">Loading medications...</p>
+          </div>
+        ) : medications.length > 0 ? (
           medications.map((medication) => (
             <MedicationCard
               key={medication.id}
