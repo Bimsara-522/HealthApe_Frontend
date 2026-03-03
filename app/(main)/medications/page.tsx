@@ -14,9 +14,39 @@ import { Button } from '@/components/UI/button';
  
 interface Medication {
   id: string;
+  
+  // Basic Info
   name: string;
-  frequency: string;
-  daysRemaining: number;
+  dosage: string;                    // "500mg"
+  form: 'tablet' | 'capsule' | 'liquid' | 'injection' | 'cream' | 'drops';
+  
+  // Schedule
+  frequency: string;                 // "3x daily"
+  times: string[];                   // ["08:00", "14:00", "20:00"]
+  instructions: string;              // "Take with food"
+  instructionsVerified: boolean;     // From database or user confirmed?
+  
+  // Duration
+  startDate: string;
+  endDate?: string;                  // Optional - undefined means ongoing
+  isOngoing: boolean;
+  
+  // Inventory
+  remainingQuantity: number;
+  refillReminderDays: number;        // Alert X days before running out
+  
+  // Reference
+  prescribedBy?: string;
+}
+
+interface ScheduledDose {
+  id: string;
+  medicationId: string;
+  medication: Medication;            // Reference to full medication
+  
+  scheduledTime: string;             // "08:00"
+  status: 'pending' | 'taken' | 'missed' | 'skipped';
+  takenAt?: string;                  // "08:15" - actual time taken
 }
  
 interface DayAdherence {
@@ -27,24 +57,96 @@ interface DayAdherence {
  
 // SAMPLE DATA
  
+// ============================================
+// SAMPLE DATA
+// ============================================
+
 const medications: Medication[] = [
   {
     id: '1',
     name: 'Amoxicillin',
+    dosage: '500mg',
+    form: 'capsule',
     frequency: '3x daily',
-    daysRemaining: 4,
+    times: ['08:00', '14:00', '20:00'],
+    instructions: 'Take with food',
+    instructionsVerified: true,
+    startDate: '2025-03-01',
+    endDate: '2025-03-14',
+    isOngoing: false,
+    remainingQuantity: 12,
+    refillReminderDays: 5,
+    prescribedBy: 'Dr. Emily Chen',
   },
   {
     id: '2',
     name: 'Vitamin D',
+    dosage: '1000IU',
+    form: 'tablet',
     frequency: '1x daily',
-    daysRemaining: 24,
+    times: ['08:00'],
+    instructions: 'Take with meal',
+    instructionsVerified: true,
+    startDate: '2025-01-01',
+    isOngoing: true,
+    remainingQuantity: 24,
+    refillReminderDays: 7,
   },
   {
     id: '3',
     name: 'Lisinopril',
+    dosage: '10mg',
+    form: 'tablet',
     frequency: '1x daily',
-    daysRemaining: 8,
+    times: ['20:00'],
+    instructions: 'Take at the same time each day',
+    instructionsVerified: false,
+    startDate: '2025-02-01',
+    isOngoing: true,
+    remainingQuantity: 8,
+    refillReminderDays: 5,
+    prescribedBy: 'Dr. Sarah Corner',
+  },
+];
+
+// Today's scheduled doses (would come from backend based on current date)
+const todaysDoses: ScheduledDose[] = [
+  {
+    id: 'd1',
+    medicationId: '1',
+    medication: medications[0],
+    scheduledTime: '08:00',
+    status: 'taken',
+    takenAt: '08:05',
+  },
+  {
+    id: 'd2',
+    medicationId: '2',
+    medication: medications[1],
+    scheduledTime: '08:00',
+    status: 'taken',
+    takenAt: '08:05',
+  },
+  {
+    id: 'd3',
+    medicationId: '1',
+    medication: medications[0],
+    scheduledTime: '14:00',
+    status: 'pending',
+  },
+  {
+    id: 'd4',
+    medicationId: '1',
+    medication: medications[0],
+    scheduledTime: '20:00',
+    status: 'pending',
+  },
+  {
+    id: 'd5',
+    medicationId: '3',
+    medication: medications[2],
+    scheduledTime: '20:00',
+    status: 'pending',
   },
 ];
  
