@@ -147,14 +147,22 @@ export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
                     )}
                   >
                     {/* Icon */}
-                    <item.icon 
+                    <item.icon
                       className={cn(
                         'w-5 h-5',
                         isActive ? 'text-blue-600' : 'text-gray-400'
-                      )} 
+                        )} 
                     />
                     {/* Menu item text */}
                     <span>{item.name}</span>
+                    
+                    {/* Pulsing dot — only shows on Medications when new prescription was saved */}
+                    {item.name === 'Medications' && newMedication && (
+                      <span className="ml-auto flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
