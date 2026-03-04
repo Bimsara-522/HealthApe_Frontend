@@ -4,7 +4,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -54,6 +54,22 @@ export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
   //We use this to highlight the active menu item
   const { logout } = useAuth();
   const pathname = usePathname();
+  // Pulsing dot state for new medications
+  const [newMedication, setNewMedication] = useState(false);
+  
+  useEffect(() => {
+    // Check if a prescription was just saved
+    const flag = sessionStorage.getItem('newMedicationAdded');
+    if (flag === 'true') setNewMedication(true);
+  }, [pathname]); // re-check on every page change
+  
+  useEffect(() => {
+    // Clear the flag when user visits medications page
+    if (pathname === '/medications') {
+      sessionStorage.removeItem('newMedicationAdded');
+      setNewMedication(false);
+    }
+  }, [pathname]);
 
   return (
     <>

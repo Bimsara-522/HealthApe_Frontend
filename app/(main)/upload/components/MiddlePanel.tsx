@@ -371,6 +371,9 @@ export default function MiddlePanel({
       }
 
       setSaveSuccess(true);
+      if (selectedCategory === 'Prescription') {
+        sessionStorage.setItem('newMedicationAdded', 'true');
+      }// Set flag for Medications page to show toast
       setToast({
         type: "success",
         title: "Saved successfully!",
