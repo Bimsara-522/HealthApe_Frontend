@@ -58,10 +58,18 @@ export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
   const [newMedication, setNewMedication] = useState(false);
   
   useEffect(() => {
-    // Check if a prescription was just saved
+  // Check immediately
+  const flag = sessionStorage.getItem('newMedicationAdded');
+  if (flag === 'true') setNewMedication(true);
+
+  // Also poll every second to catch same-page saves
+  const interval = setInterval(() => {
     const flag = sessionStorage.getItem('newMedicationAdded');
     if (flag === 'true') setNewMedication(true);
-  }, [pathname]); // re-check on every page change
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [pathname]);
   
   useEffect(() => {
     // Clear the flag when user visits medications page

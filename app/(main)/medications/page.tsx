@@ -55,15 +55,7 @@ interface DayAdherence {
   completed: boolean;
   isWeekend: boolean;
 }
- 
-// SAMPLE DATA
- 
 
-
-
-
-
- 
 
 // HELPER FUNCTIONS
 
@@ -552,6 +544,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
 
 export default function MedicationsPage() {
   const router = useRouter();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // API STATE
   const [medications, setMedications] = useState<Medication[]>([]);
@@ -591,60 +584,126 @@ export default function MedicationsPage() {
     };
 
     fetchMedications();
+    fetchWeekAdherence();
   }, []);
 
   // STATE
   const [weeklyAdherence, setWeeklyAdherence] = useState<DayAdherence[]>([
-    { day: 'M', completed: true, isWeekend: false },
-    { day: 'T', completed: true, isWeekend: false },
-    { day: 'W', completed: true, isWeekend: false },
-    { day: 'T', completed: true, isWeekend: false },
-    { day: 'F', completed: true, isWeekend: false },
+    { day: 'M', completed: false, isWeekend: false },
+    { day: 'T', completed: false, isWeekend: false },
+    { day: 'W', completed: false, isWeekend: false },
+    { day: 'T', completed: false, isWeekend: false },
+    { day: 'F', completed: false, isWeekend: false },
     { day: 'S', completed: false, isWeekend: true },
     { day: 'S', completed: false, isWeekend: true },
   ]);
+
+  // Fetch weekly adherence from API
+  const fetchWeekAdherence = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/dose-log/week`, {
+        credentials: 'include',
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Map API response to DayAdherence format
+      const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      setWeeklyAdherence(
+        data.map((d: any, i: number) => ({
+          day: days[i],
+          completed: d.completed,
+          isWeekend: d.isWeekend,
+        }))
+      );
+    } catch (err) {
+      console.error('Failed to fetch week adherence:', err);
+    }
+  };
 
   // CALCULATED VALUES
   const completedDays = weeklyAdherence.filter(d => d.completed).length;
   const adherencePercentage = Math.round((completedDays / weeklyAdherence.length) * 100);
 
   // HANDLERS
-  const handleToggleDay = (index: number) => {
-    setWeeklyAdherence(prev =>
-      prev.map((day, i) =>
-        i === index
-          ? { ...day, completed: !day.completed }
-          : day
-      )
-    );
-  };
+  const handleToggleDay = (_index: number) => {};
 
   // MENU STATE
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
-  // HANDLERS FOR DOSES
-  const handleMarkTaken = (doseId: string) => {
+  const handleMarkTaken = async (doseId: string) => {
     const now = new Date();
     const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
+    const today = now.toISOString().slice(0, 10);
+
+    // Find the dose to get medicationId and scheduledTime
+    const dose = todaysSchedule.find(d => d.id === doseId);
+    if (!dose) return;
+
+    // Update UI instantly
     setTodaysSchedule(prev =>
-      prev.map(dose =>
-        dose.id === doseId
-          ? { ...dose, status: 'taken' as const, takenAt: timeString }
-          : dose
+      prev.map(d =>
+        d.id === doseId
+          ? { ...d, status: 'taken' as const, takenAt: timeString }
+          : d
       )
     );
+
+    // Log to backend
+    try {
+      await fetch(`${API_BASE}/dose-log`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          medicationId: dose.medicationId,
+          scheduledDate: today,
+          scheduledTime: dose.scheduledTime,
+          status: 'taken',
+        }),
+      });
+
+      // Refresh weekly adherence bar
+      fetchWeekAdherence();
+    } catch (err) {
+      console.error('Failed to log dose:', err);
+    }
   };
 
-  const handleMarkSkipped = (doseId: string) => {
+  const handleMarkSkipped = async (doseId: string) => {
+    const today = new Date().toISOString().slice(0, 10);
+    
+    const dose = todaysSchedule.find(d => d.id === doseId);
+    if (!dose) return;
+
+    // Update UI instantly
     setTodaysSchedule(prev =>
-      prev.map(dose =>
-        dose.id === doseId
-          ? { ...dose, status: 'skipped' as const }
-          : dose
+      prev.map(d =>
+        d.id === doseId
+          ? { ...d, status: 'skipped' as const }
+          : d
       )
     );
+
+    // Log to backend
+    try {
+      await fetch(`${API_BASE}/dose-log`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          medicationId: dose.medicationId,
+          scheduledDate: today,
+          scheduledTime: dose.scheduledTime,
+          status: 'skipped',
+        }),
+      });
+
+      // Refresh weekly adherence bar
+      fetchWeekAdherence();
+    } catch (err) {
+      console.error('Failed to log dose:', err);
+    }
   };
+      
 
   const handleEditMedication = (id: string) => {
     console.log('Edit medication:', id);
