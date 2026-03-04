@@ -545,6 +545,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
 export default function MedicationsPage() {
   const router = useRouter();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  // Edit modal state
+  const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
+  const [editInstructions, setEditInstructions] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   // API STATE
   const [medications, setMedications] = useState<Medication[]>([]);
@@ -563,6 +567,7 @@ export default function MedicationsPage() {
         setMedications(data);
 
         // Build today's doses from fetched medications
+        const today = new Date().toISOString().slice(0, 10);
         const doses: ScheduledDose[] = [];
         data.forEach((med) => {
           (med.times ?? []).forEach((time, index) => {
@@ -575,7 +580,35 @@ export default function MedicationsPage() {
             });
           });
         });
-        setTodaysSchedule(doses);
+
+       // Fetch today's logs and match status
+       try {
+        const logRes = await fetch(`${API_BASE}/dose-log/today`, {
+          credentials: 'include',
+        });
+        if (logRes.ok) {
+          const logs = await logRes.json();
+          doses.forEach(dose => {
+            const match = logs.find(
+              (l: any) =>
+                l.medicationId === dose.medicationId &&
+              l.scheduledTime === dose.scheduledTime &&
+              l.scheduledDate === today
+            );
+            if (match) {
+              dose.status = match.status;
+              if (match.takenAt) {
+                const t = new Date(match.takenAt);
+                dose.takenAt = `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`;
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch today logs:', err);
+      }
+      
+      setTodaysSchedule(doses);
       } catch (err) {
         console.error('Failed to load medications:', err);
       } finally {
@@ -706,31 +739,71 @@ export default function MedicationsPage() {
       
 
   const handleEditMedication = (id: string) => {
-    console.log('Edit medication:', id);
-    // TODO: Open edit modal or navigate to edit page
+    const med = medications.find(m => m.id === id);
+    if (!med) return;
+    setEditingMedication(med);
+    setEditInstructions(med.instructions ?? '');
     setOpenMenuId(null);
+  };
+  
+  const handleSaveEdit = async () => {
+    if (!editingMedication) return;
+    setEditSaving(true);
+    
+    try {
+      const res = await fetch(`${API_BASE}/medication/${editingMedication.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructions: editInstructions }),
+      });
+      
+      if (!res.ok) throw new Error('Failed to update');
+      
+      const updated = await res.json();
+
+      // Update local state instantly
+      setMedications(prev =>
+        prev.map(m => m.id === updated.id ? updated : m)
+      );
+
+      // Also update today's schedule references
+      setTodaysSchedule(prev =>
+        prev.map(d =>
+          d.medicationId === updated.id
+            ? { ...d, medication: updated }
+            : d
+        )
+      );
+      
+      setEditingMedication(null);
+    } catch (err) {
+      console.error('Failed to save edit:', err);
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const handleDeleteMedication = async (id: string) => {
-  try {
-    const res = await fetch(`${API_BASE}/medication/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
+    try {
+      const res = await fetch(`${API_BASE}/medication/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!res.ok) throw new Error('Failed to delete');
 
-    if (!res.ok) throw new Error('Failed to delete');
+      // Remove from medications list
+      setMedications(prev => prev.filter(m => m.id !== id));
 
-    // Remove from medications list
-    setMedications(prev => prev.filter(m => m.id !== id));
-
-    // Remove from today's schedule
-    setTodaysSchedule(prev => prev.filter(d => d.medicationId !== id));
-
-    setOpenMenuId(null);
-  } catch (err) {
-    console.error('Failed to delete medication:', err);
-  }
-};
+      // Remove from today's schedule
+      setTodaysSchedule(prev => prev.filter(d => d.medicationId !== id));
+      setOpenMenuId(null);
+    
+    } catch (err) {
+      console.error('Failed to delete medication:', err);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -792,6 +865,59 @@ export default function MedicationsPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Instructions Modal */}
+      {editingMedication && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setEditingMedication(null)}
+          />
+          
+          {/* Modal */}
+          <div className="relative w-[420px] max-w-[92vw] rounded-2xl bg-white shadow-2xl border border-gray-200 p-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">
+              Edit Instructions
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {editingMedication.name} {editingMedication.dosage}
+            </p>
+
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              Instructions
+            </label>
+            <textarea
+              value={editInstructions}
+              onChange={(e) => setEditInstructions(e.target.value)}
+              rows={3}
+              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+              placeholder="e.g. Take with food"
+            />
+
+            <p className="text-xs text-emerald-600 mt-2">
+              ✅ Saving will mark instructions as verified and remove the warning badge.
+            </p>
+            
+            <div className="flex justify-end gap-3 mt-5">
+              <button
+                onClick={() => setEditingMedication(null)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200"
+                >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={editSaving}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                {editSaving ? 'Saving...' : 'Save & Verify'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
