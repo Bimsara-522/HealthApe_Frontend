@@ -299,6 +299,7 @@ function NoSearchResults({ onClear }: { onClear: () => void }) {
 export default function MedicalRecordsPage() {
   const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
     records, loading, error, deleteRecord, refetch,
@@ -312,9 +313,14 @@ export default function MedicalRecordsPage() {
   const handleViewDetails = (id: string) => router.push(`/records/${id}`);
 
   const handleDelete = async (id: string) => {
-    const success = await deleteRecord(id);
-    if (!success) alert('Failed to delete. Please try again.');
-  };
+  const success = await deleteRecord(id);
+  if (success) {
+    setSuccessMessage('Record deleted successfully.');
+    setTimeout(() => setSuccessMessage(null), 3000);
+  } else {
+    alert('Failed to delete. Please try again.');
+  }
+};
 
   const clearFilters = () => {
     setSearch('');
@@ -353,6 +359,16 @@ export default function MedicalRecordsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+
+      {/* Success toast */}
+      {successMessage && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium">
+          <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {successMessage}
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4">
