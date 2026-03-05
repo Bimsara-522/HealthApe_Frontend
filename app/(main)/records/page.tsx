@@ -17,7 +17,7 @@ import { useMedicalRecords, MedicalRecord } from '@/hooks/useMedicalRecords';
 //Constants
 
 //These match the category values saved during upload
-const CATEGORIES = ['Prescription', 'Lab Report', 'Image/X-ray', 'Referral', 'Other'];
+const CATEGORIES = ['Prescription', 'Lab Report', 'Image/X-ray', 'Doctor Note', 'Insurance Document'];
 
 //Helpers
 
