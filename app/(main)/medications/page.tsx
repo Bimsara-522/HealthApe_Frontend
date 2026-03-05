@@ -550,6 +550,13 @@ export default function MedicationsPage() {
   const [editInstructions, setEditInstructions] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
+  // Toast state
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Delete confirmation state
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   // API STATE
   const [medications, setMedications] = useState<Medication[]>([]);
   const [todaysSchedule, setTodaysSchedule] = useState<ScheduledDose[]>([]);
@@ -660,6 +667,12 @@ export default function MedicationsPage() {
 
   // HANDLERS
   const handleToggleDay = (_index: number) => {};
+
+  // Show a toast message and auto-hide after 3 seconds
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // MENU STATE
   const handleMarkTaken = async (doseId: string) => {
@@ -777,33 +790,43 @@ export default function MedicationsPage() {
       );
       
       setEditingMedication(null);
+      showToast('success', 'Instructions updated and verified successfully!');
     } catch (err) {
       console.error('Failed to save edit:', err);
+      showToast('error', 'Failed to update instructions. Please try again.');
     } finally {
       setEditSaving(false);
     }
   };
 
-  const handleDeleteMedication = async (id: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/medication/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      
-      if (!res.ok) throw new Error('Failed to delete');
+  // Step 1 — open confirmation modal
+const handleDeleteMedication = (id: string) => {
+  setDeletingId(id);
+  setDeleteConfirmOpen(true);
+  setOpenMenuId(null);
+};
 
-      // Remove from medications list
-      setMedications(prev => prev.filter(m => m.id !== id));
+// Step 2 — actually delete after confirmation
+const confirmDelete = async () => {
+  if (!deletingId) return;
+  try {
+    const res = await fetch(`${API_BASE}/medication/${deletingId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
 
-      // Remove from today's schedule
-      setTodaysSchedule(prev => prev.filter(d => d.medicationId !== id));
-      setOpenMenuId(null);
-    
-    } catch (err) {
-      console.error('Failed to delete medication:', err);
-    }
-  };
+    if (!res.ok) throw new Error('Failed to delete');
+
+    setMedications(prev => prev.filter(m => m.id !== deletingId));
+    setTodaysSchedule(prev => prev.filter(d => d.medicationId !== deletingId));
+    setDeleteConfirmOpen(false);
+    setDeletingId(null);
+    showToast('success', 'Medication deleted successfully!');
+  } catch (err) {
+    console.error('Failed to delete medication:', err);
+    showToast('error', 'Failed to delete medication. Please try again.');
+  }
+};
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -865,6 +888,72 @@ export default function MedicationsPage() {
           </div>
         )}
       </div>
+
+
+      {/* Toast Notification — matches login style */}
+{toast && (
+  <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[520px] max-w-[92vw]">
+    <div className={`flex items-start gap-3 rounded-xl border ${
+      toast.type === 'success' ? 'border-green-200' : 'border-red-200'
+    } bg-white shadow-xl px-4 py-3`}>
+      <div className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full font-bold ${
+        toast.type === 'success'
+          ? 'bg-green-50 border border-green-200 text-green-600'
+          : 'bg-red-50 border border-red-200 text-red-600'
+      }`}>
+        {toast.type === 'success' ? '✓' : '!'}
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-gray-900">{toast.message}</p>
+      </div>
+      <button
+        onClick={() => setToast(null)}
+        className="ml-2 rounded-md px-2 py-1 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
+
+{/* Delete Confirmation Modal — matches logout confirm style */}
+{deleteConfirmOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+      onClick={() => setDeleteConfirmOpen(false)}
+    />
+    <div className="relative w-[420px] max-w-[92vw] rounded-2xl bg-white shadow-2xl border border-gray-200 p-6">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 border border-red-100 text-red-600 font-bold">
+          !
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900">
+            Delete Medication
+          </h3>
+          <p className="mt-1 text-sm text-gray-600">
+            Are you sure? This will remove the medication and all its dose history permanently.
+          </p>
+        </div>
+      </div>
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          onClick={() => setDeleteConfirmOpen(false)}
+          className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 border border-gray-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={confirmDelete}
+          className="rounded-xl px-4 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Edit Instructions Modal */}
       {editingMedication && (
