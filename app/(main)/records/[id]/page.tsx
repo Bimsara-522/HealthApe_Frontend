@@ -3,7 +3,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft, FileText, Calendar, User, Building2,
@@ -59,15 +59,20 @@ export default function RecordDetailPage() {
 
   const { record, loading, error } = useMedicalRecord(id);
   const { deleteRecord } = useMedicalRecords();
+  const [deleteMessage, setDeleteMessage] = useState<'success' | 'error' | null>(null);
+
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm('Delete this record? This cannot be undone.')) return;
     const success = await deleteRecord(id);
     if (success) {
-      router.push('/records');
+      setDeleteMessage('success');
+      setTimeout(() => router.push('/records'), 2000);
     } else {
-      alert('Failed to delete. Please try again.');
+      setDeleteMessage('error');
+      setTimeout(() => setDeleteMessage(null), 3000);
     }
+    setConfirmDelete(false);
   };
 
   // Loading
@@ -99,6 +104,24 @@ export default function RecordDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
+
+      {/* Delete message banner */}
+      {deleteMessage === 'success' && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm font-medium">
+          <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Record deleted successfully. Redirecting...
+        </div>
+      )}
+      {deleteMessage === 'error' && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-medium">
+          <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Failed to delete. Please try again.
+        </div>
+      )}
 
       {/* Back button */}
       <button
@@ -142,13 +165,30 @@ export default function RecordDetailPage() {
                 <EyeIcon className="w-5 h-5" />
               </a>
             )}
-            <button
-              onClick={handleDelete}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              title="Delete record"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+            {confirmDelete ? (
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleDelete}
+          className="px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+        >
+          Confirm
+        </button>
+        <button
+          onClick={() => setConfirmDelete(false)}
+          className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    ) : (
+      <button
+        onClick={() => setConfirmDelete(true)}
+        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+        title="Delete record"
+      >
+        <Trash2 className="w-5 h-5" />
+  </button>
+)}
           </div>
         </div>
       </div>
