@@ -10,11 +10,11 @@ import { CalendarSkeleton } from './loading'
 import { AppointmentList } from '@/components/appointments/AppointmentList'
 import { ViewAllButton } from '@/components/appointments/ViewAllButton'
 import { useAppointments, useNextAppointment } from 'app/(main)/appointments/hooks/useAppointments'
+import { isBeforeToday } from 'app/(main)/appointments/lib/utils/date'
 
 export default function AppointmentsPage() {
   // Fetch all appointments for calendar
   const { data: appointments, isLoading, error } = useAppointments()
-  
   // Fetch next appointment separately
   const { data: nextVisit } = useNextAppointment()
 
@@ -52,8 +52,11 @@ export default function AppointmentsPage() {
     )
   }
 
-  const pastVisits = appointments
-    .filter(a => new Date(a.date) <= new Date()) // convert the appointment's date string into a Date and keep appointments that are today or earlier
+  // const pastVisits = appointments
+  //   .filter(a => new Date(a.date) <= new Date()) // convert the appointment's date string into a Date and keep appointments that are today or earlier
+  //   .slice(0, 5) // take first 5 appointments
+    const pastVisits = appointments
+    .filter(a => isBeforeToday(a.date))
     .slice(0, 5) // take first 5 appointments
 
   return (

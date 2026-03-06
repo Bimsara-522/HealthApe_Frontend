@@ -14,7 +14,16 @@ const schema = z.object({
   doctorName: z.string().min(1, 'Enter a doctor name'),
   doctorId: z.string().optional(),
   hospital: z.string().min(1, 'Enter hospital/clinic name'),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
+  // date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
+  date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')
+      .refine((value) => {
+        const selected = new Date(`${value}T00:00:00`)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return selected >= today
+  }, 'Date cannot be earlier than today'),
   time: z.string().min(1, 'Enter a time'), // using <input type="time" />
   reason: z.string().optional(),
   bring: z.string().optional(),     // what to bring
@@ -53,6 +62,8 @@ export function BookingForm() {
       questions: '',
     },
   })
+
+  const today = new Date().toISOString().split('T')[0]
 
   // --- Autocomplete state ---
   const doctorName = watch('doctorName')
@@ -177,8 +188,14 @@ export function BookingForm() {
       {/* Date */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+        {/* <input
+          type="date"
+          {...register('date')}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+        /> */}
         <input
           type="date"
+          min={today}
           {...register('date')}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
         />

@@ -19,9 +19,22 @@ export async function getNextAppointment(): Promise<Appointment | null> {
     // Backend doesn't have /appointments/next endpoint (404), so fetch all and filter client-side
     console.log('Backend does not have /appointments/next endpoint, falling back to client-side filtering')
     const allAppointments = await getAppointments({ month: undefined })
+    // const nextVisit = allAppointments
+    //   .filter(a => new Date(a.date) > new Date())
+    //   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const nextVisit = allAppointments
-      .filter(a => new Date(a.date) > new Date())
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]
+      .filter(a => {
+        const d = new Date(a.date)
+        d.setHours(0, 0, 0, 0)
+        return d >= today
+      })
+      .sort((a, b) => {
+        const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime()
+        if (dateCompare !== 0) return dateCompare
+        return a.time.localeCompare(b.time)
+      })[0]
     return nextVisit || null
   }
 }
