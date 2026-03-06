@@ -39,74 +39,74 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
   return (
     <div className="p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Appointment Details</h1>
-              <p className="text-sm text-gray-500 mt-1"> View, edit, or cancel your booking. </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link href={`/appointments/${appt.id}/edit`} className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:opacity-90"> Edit </Link>
-              <button onClick={onCancel} disabled={cancelMutation.isPending || appt.status === 'cancelled'} className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"> {cancelMutation.isPending ? 'Cancelling...' : 'Cancel'} </button>
-            </div>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Appointment Details</h1>
+            <p className="text-sm text-gray-500 mt-1"> View, edit, or cancel your booking. </p>
           </div>
 
-          {/* Card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                {appt.doctor.avatarUrl ? (
-                  <img src={appt.doctor.avatarUrl} alt="" className="w-full h-full object-cover"/>
-                ) : (
-                  <span className="text-xl">👤</span>
-                )}
-              </div>
+          <div className="flex items-center gap-2">
+            <Link href={`/appointments/${appt.id}/edit`} className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:opacity-90"> Edit </Link>
+            <button onClick={onCancel} disabled={cancelMutation.isPending || appt.status === 'cancelled'} className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"> {cancelMutation.isPending ? 'Cancelling...' : 'Cancel'} </button>
+          </div>
+        </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-lg font-semibold text-gray-900 truncate">
-                    {appt.doctor.name}
-                  </p>
-                  <AppointmentStatusBadge status={appt.status} />
-                </div>
+        {/* Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {appt.doctor?.avatarUrl ? (
+                <img src={appt.doctor.avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xl">👤</span>
+              )}
+            </div>
 
-                <p className="text-sm text-gray-500 mt-1 truncate">
-                  {appt.doctor.specialty} · {appt.clinic}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-lg font-semibold text-gray-900 truncate">
+                  {appt.doctor?.name || 'Doctor'}
                 </p>
-
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div className="p-3 rounded-xl bg-gray-50">
-                    <p className="text-gray-500">Date</p>
-                    <p className="font-medium text-gray-900">{formatAppointmentDate(appt.date)}</p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-gray-50">
-                    <p className="text-gray-500">Time</p>
-                    <p className="font-medium text-gray-900">{appt.time}</p>
-                  </div>
-                </div>
-
-                {appt.reason && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-500">Reason</p>
-                    <p className="text-sm text-gray-900 mt-1">{appt.reason}</p>
-                  </div>
-                )}
-
-                {appt.notes && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-500">Notes</p>
-                    <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{appt.notes}</p>
-                  </div>
-                )}
+                <AppointmentStatusBadge status={appt.status} />
               </div>
+
+              <p className="text-sm text-gray-500 mt-1 truncate">
+                {appt.doctor?.specialty || 'Specialist'} · {appt.hospital}
+              </p>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="p-3 rounded-xl bg-gray-50">
+                  <p className="text-gray-500">Date</p>
+                  <p className="font-medium text-gray-900">{formatAppointmentDate(appt.date)}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-50">
+                  <p className="text-gray-500">Time</p>
+                  <p className="font-medium text-gray-900">{appt.time}</p>
+                </div>
+              </div>
+
+              {appt.reason && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500">Reason</p>
+                  <p className="text-sm text-gray-900 mt-1">{appt.reason}</p>
+                </div>
+              )}
+
+              {appt.notes && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500">Notes</p>
+                  <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{appt.notes}</p>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          <Link className="text-blue-600 hover:underline text-sm" href="/appointments">
-            ← Back to appointments
-          </Link>
+        <Link className="text-blue-600 hover:underline text-sm" href="/appointments">
+          ← Back to appointments
+        </Link>
+      </div>
     </div>
-  </div>  
   )
 }

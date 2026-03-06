@@ -85,7 +85,7 @@ export default function AppointmentsAllClient({
                   <th className="px-6 py-4">Date</th>
                   <th className="px-6 py-4">Time</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Clinic</th>
+                  <th className="px-6 py-4">Hospital</th>
                   <th className="px-6 py-4">Reason</th>
                 </tr>
               </thead>
@@ -122,7 +122,7 @@ export default function AppointmentsAllClient({
                     </td>
 
                     <td className="px-6 py-4 text-gray-700">
-                      {a.clinic}
+                      {a.hospital}
                     </td>
 
                     <td className="px-6 py-4 text-gray-700">

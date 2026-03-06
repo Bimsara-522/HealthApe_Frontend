@@ -3,7 +3,7 @@ import { getAppointments } from 'app/(main)/appointments/lib/api/appointments'
 import AppointmentsAllClient from 'app/(main)/appointments/all/ui/AppointmentsAllClient'
 
 export default async function AppointmentsAllPage() {
-  // Fetch mock data 
+  // Fetch all appointments 
   const appointments = await getAppointments({ month: undefined })
 
   // Only upcoming appointments
