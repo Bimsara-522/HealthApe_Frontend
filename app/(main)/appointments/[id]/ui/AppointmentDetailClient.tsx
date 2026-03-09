@@ -31,7 +31,16 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
     )
   }
 
+  const isCompleted = appt.status === 'completed'
+  const isCancelled = appt.status === 'cancelled'
+  const isLocked = isCompleted || isCancelled
+
   const onCancel = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel this appointment?'
+    )
+    if (!confirmed) return
+
     await cancelMutation.mutateAsync(appt.id)
     router.refresh()
   }
@@ -47,9 +56,26 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href={`/appointments/${appt.id}/edit`} className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:opacity-90"> Edit </Link>
-            <button onClick={onCancel} disabled={cancelMutation.isPending || appt.status === 'cancelled'} className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"> {cancelMutation.isPending ? 'Cancelling...' : 'Cancel'} </button>
-          </div>
+            {!isCompleted && !isCancelled && (
+              <Link
+                href={`/appointments/${appt.id}/edit`}
+                className="px-3 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:opacity-90"
+              >
+                Edit
+              </Link>
+            )}
+
+            {/* {!isCompleted && ( */}
+            {!isCompleted && !isCancelled && (  
+              <button
+                onClick={onCancel}
+                disabled={cancelMutation.isPending || isCancelled}
+                className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {isCancelled ? 'Cancelled' : cancelMutation.isPending ? 'Cancelling...' : 'Cancel'}
+              </button>
+            )}
+          </div>   
         </div>
 
         {/* Card */}
@@ -66,13 +92,15 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-lg font-semibold text-gray-900 truncate">
-                  {appt.doctor?.name || 'Doctor'}
+                  {/* {appt.doctor?.name || 'Doctor'} */}
+                  {appt.doctor?.name ?? appt.doctorNameSnapshot ?? 'Doctor'}
                 </p>
                 <AppointmentStatusBadge status={appt.status} />
               </div>
 
               <p className="text-sm text-gray-500 mt-1 truncate">
-                {appt.doctor?.specialty || 'Specialist'} · {appt.hospital}
+                {appt.doctor?.specialty ?? 'Specialist'} · {appt.hospital}
+                {/* {appt.doctor?.specialty || 'Specialist'} · {appt.hospital} */}
               </p>
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -93,10 +121,17 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
                 </div>
               )}
 
-              {appt.notes && (
+              {appt.bring && (
                 <div className="mt-4">
-                  <p className="text-sm text-gray-500">Notes</p>
-                  <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{appt.notes}</p>
+                  <p className="text-sm text-gray-500">What to bring</p>
+                  <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{appt.bring}</p>
+                </div>
+              )}
+
+              {appt.questions && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500">Questions to ask</p>
+                  <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">{appt.questions}</p>
                 </div>
               )}
             </div>

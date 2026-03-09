@@ -47,7 +47,8 @@ export async function getAppointmentById(id: string): Promise<Appointment> {
 
 // Sends dto as request body  (Client version - no cookies needed)
 export async function createAppointment(dto: CreateAppointmentDto): Promise<Appointment> {
-  const { data } = await api.post<Appointment>('/appointments/new', dto)  // await waits for backend response and returns backend response
+  // await waits for backend response and returns backend response
+  const { data } = await api.post<Appointment>('/appointments/new', dto) // passing a JavaScript object (dto) to Axios, Axios automatically serializes it to JSON
   return data
 }
 
@@ -56,6 +57,7 @@ export async function updateAppointment(id: string, dto: UpdateAppointmentDto): 
   return data // Updates appointment on backend and returns updated appointment from backend
 }
 
+// Only updates the status field to "cancelled"
 export async function cancelAppointment(id: string): Promise<void> {
   await api.patch(`/appointments/${id}/cancel`)
 }

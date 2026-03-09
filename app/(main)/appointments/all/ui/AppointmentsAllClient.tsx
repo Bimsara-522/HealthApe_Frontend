@@ -4,39 +4,51 @@ import { useMemo, useState } from 'react'
 import { AppointmentList } from '@/components/appointments/AppointmentList'
 import type { Appointment } from 'app/(main)/appointments/types/appointment'
 import { AppointmentStatusBadge } from '@/components/appointments/AppointmentStatusBadge'
+import { useAppointments } from 'app/(main)/appointments/hooks/useAppointments'
 
-export default function AppointmentsAllClient({
-  initialAppointments,
-}: {
-  initialAppointments: Appointment[]
-}) {
+export default function AppointmentsAllClient() {
+  const { data: appointments, isLoading, error } = useAppointments()
   // UI state for showing/hiding the filter panel
   const [showFilter, setShowFilter] = useState(false)
 
   // Month format from <input type="month" /> is "YYYY-MM"
   const [selectedMonth, setSelectedMonth] = useState<string>('')
 
+  if (isLoading) {
+    return <div className="p-6">Loading appointments...</div>
+  }
+  if (error || !appointments) {
+    return <div className="p-6 text-red-600">Failed to load appointments</div>
+  }
+  const upcoming = appointments
+    .filter(a => {
+      const d = new Date(a.date)
+      d.setHours(0, 0, 0, 0)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return d >= today
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
   // Filtered list (computed)
   const filteredAppointments = useMemo(() => {
-    if (!selectedMonth) return initialAppointments
-
-    // Compare "YYYY-MM" prefix of ISO date (YYYY-MM-DD)
-    return initialAppointments.filter((a) => a.date.slice(0, 7) === selectedMonth)
-  }, [initialAppointments, selectedMonth])
+    if (!selectedMonth) return upcoming
+    return upcoming.filter(a => a.date.slice(0, 7) === selectedMonth)
+  }, [upcoming, selectedMonth])
 
   return (
     <div className="p-6">
-    <div className="max-w-6xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">All Upcoming Appointments</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                View and filter your upcoming bookings.
-              </p>
-            </div>
+      <div className="max-w-8xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">All Upcoming Appointments</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              View and filter your upcoming bookings.
+            </p>
+          </div>
 
-            {/* Filter Button */}
+          {/* Filter Button */}
           <button
             onClick={() => setShowFilter((v) => !v)}
             className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors"
@@ -66,76 +78,76 @@ export default function AppointmentsAllClient({
           </div>
         )}
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-        {filteredAppointments.length === 0 ? (
-          <div className="p-6 text-sm text-gray-500">
-            {selectedMonth
-              ? 'No appointments in that month'
-              : 'No upcoming appointments found'}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-left text-gray-500 uppercase text-xs tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">ID</th>
-                  <th className="px-6 py-4">Doctor</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Time</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Hospital</th>
-                  <th className="px-6 py-4">Reason</th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-gray-100">
-                {filteredAppointments.map((a) => (
-                  <tr
-                    key={a.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {a.id}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900">
-                        {a.doctor.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {a.doctor.specialty}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 text-gray-700">
-                      {a.date.slice(0, 10)}
-                    </td>
-
-                    <td className="px-6 py-4 text-gray-700">
-                      {a.time}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <AppointmentStatusBadge status={a.status} />
-                    </td>
-
-                    <td className="px-6 py-4 text-gray-700">
-                      {a.hospital}
-                    </td>
-
-                    <td className="px-6 py-4 text-gray-700">
-                      {a.reason ?? '-'}
-                    </td>
+          {filteredAppointments.length === 0 ? (
+            <div className="p-6 text-sm text-gray-500">
+              {selectedMonth
+                ? 'No appointments in that month'
+                : 'No upcoming appointments found'}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-left text-gray-500 uppercase text-xs tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4">ID</th>
+                    <th className="px-6 py-4">Doctor</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Time</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Hospital</th>
+                    <th className="px-6 py-4">Reason</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+
+                <tbody className="divide-y divide-gray-100">
+                  {filteredAppointments.map((a) => (
+                    <tr
+                      key={a.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {a.id}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-900">
+                          {a.doctor?.name ?? a.doctorNameSnapshot}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {a.doctor?.name ?? a.doctorNameSnapshot}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4 text-gray-700">
+                        {a.date.slice(0, 10)}
+                      </td>
+
+                      <td className="px-6 py-4 text-gray-700">
+                        {a.time}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <AppointmentStatusBadge status={a.status} />
+                      </td>
+
+                      <td className="px-6 py-4 text-gray-700">
+                        {a.hospital}
+                      </td>
+
+                      <td className="px-6 py-4 text-gray-700">
+                        {a.reason ?? '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>  
   )
 }

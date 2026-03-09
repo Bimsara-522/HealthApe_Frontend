@@ -3,7 +3,8 @@ import api from 'lib/api/client'
 export type DoctorSuggestion = {
   id: string
   name: string
-  specialty?: string
+  specialty?: string | null
+  avatarUrl?: string | null
 }
 
 export async function searchDoctors(query: string): Promise<DoctorSuggestion[]> {
