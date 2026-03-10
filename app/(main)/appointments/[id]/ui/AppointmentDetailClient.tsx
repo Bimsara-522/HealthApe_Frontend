@@ -6,12 +6,14 @@ import { useAppointment } from 'app/(main)/appointments/hooks/useAppointment'
 import { useCancelAppointment } from 'app/(main)/appointments/hooks/useAppointments'
 import { AppointmentStatusBadge } from '@/components/appointments/AppointmentStatusBadge'
 import { formatAppointmentDate } from 'app/(main)/appointments/lib/utils/date'
+import { useState } from 'react'
 
 export default function AppointmentDetailClient({ id }: { id: string }) {
   const router = useRouter()
   const { data: appt, isLoading, isError, error } = useAppointment(id)
   const cancelMutation = useCancelAppointment()
-
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  
   if (isLoading) {
     return (
       <div className="p-6 max-w-4xl">
@@ -33,19 +35,25 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
 
   const isCompleted = appt.status === 'completed'
   const isCancelled = appt.status === 'cancelled'
-  const isLocked = isCompleted || isCancelled
-
-  const onCancel = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to cancel this appointment?'
-    )
-    if (!confirmed) return
-
-    await cancelMutation.mutateAsync(appt.id)
-    router.refresh()
+  const openCancelModal = () => {
+    setShowCancelModal(true)
+  }
+  const closeCancelModal = () => {
+    if (cancelMutation.isPending) return
+    setShowCancelModal(false)
+  }
+  const confirmCancelAppointment = async () => {
+    try {
+      await cancelMutation.mutateAsync(appt.id)
+      setShowCancelModal(false)
+      router.refresh()
+    } catch {
+      setShowCancelModal(false)
+    }
   }
 
   return (
+    <>
     <div className="p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
@@ -65,16 +73,15 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
               </Link>
             )}
 
-            {/* {!isCompleted && ( */}
-            {!isCompleted && !isCancelled && (  
-              <button
-                onClick={onCancel}
-                disabled={cancelMutation.isPending || isCancelled}
-                className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
-              >
-                {isCancelled ? 'Cancelled' : cancelMutation.isPending ? 'Cancelling...' : 'Cancel'}
-              </button>
-            )}
+            {!isCompleted && !isCancelled && (
+                <button
+                  onClick={openCancelModal}
+                  disabled={cancelMutation.isPending}
+                  className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                >
+                  {cancelMutation.isPending ? 'Cancelling...' : 'Cancel'}
+                </button>
+              )}
           </div>   
         </div>
 
@@ -143,5 +150,55 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
         </Link>
       </div>
     </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={closeCancelModal}
+          />
+
+          {/* Modal */}
+          <div className="relative z-10 w-full max-w-md mx-4 rounded-2xl bg-white shadow-2xl border border-gray-100 p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-semibold shrink-0">
+                ?
+              </div>
+
+              <div className="flex-1">
+                <h2 className="text-l font-semibold text-gray-900">
+                  Confirm cancellation
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to cancel this appointment?
+                </p>
+
+                <div className="mt-6 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeCancelModal}
+                    disabled={cancelMutation.isPending}
+                    className="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={confirmCancelAppointment}
+                    disabled={cancelMutation.isPending}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {cancelMutation.isPending ? 'Cancelling...' : 'OK'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+  </>
   )
 }
