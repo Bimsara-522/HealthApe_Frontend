@@ -11,7 +11,80 @@ const client = new OpenAI({
 });
 
 /* ============================================================
-   Helpers
+   Types
+============================================================ */
+
+type NullableString = string | null;
+
+type ExtractedFields = {
+  date: NullableString;
+
+  doctorName: NullableString;
+  hospital: NullableString;
+
+  symptoms: NullableString;
+  diagnosis: NullableString;
+  notes: NullableString;
+
+  medications: NullableString;
+  dosage: NullableString;
+  frequency: NullableString;
+
+  testName: NullableString;
+  results: NullableString;
+
+  imagingType: NullableString;
+  bodyPart: NullableString;
+  findings: NullableString;
+
+  provider: NullableString;
+  policyNumber: NullableString;
+  claimNumber: NullableString;
+  coverageDetails: NullableString;
+};
+
+type MedicationItem = {
+  name: string;
+  strength: NullableString;
+  doseQuantity: number | null;
+  doseUnit: NullableString;
+  scheduleTimes: string[];
+  startDate: NullableString;
+  endDate: NullableString;
+  instructions: NullableString;
+};
+
+type ReferenceRange = {
+  low: number | null;
+  high: number | null;
+  text: NullableString;
+};
+
+type MetricItem = {
+  name: string;
+  value: number | null;
+  unit: NullableString;
+  date: NullableString;
+  dateSource: "explicit" | "document" | "unknown";
+  fasting: boolean | null;
+  referenceRange: ReferenceRange | null;
+};
+
+type Details = {
+  medicationItems: MedicationItem[];
+  metrics: MetricItem[];
+};
+
+type ValidateResult = {
+  isMedical: boolean;
+  reason: NullableString;
+  extractedText: NullableString;
+  extractedFields: ExtractedFields | null;
+  details: Details | null;
+};
+
+/* ============================================================
+   Basic Helpers
 ============================================================ */
 
 function safeJsonParse(text: string) {
@@ -26,7 +99,7 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function emptyExtractedFields(date: string | null) {
+function emptyExtractedFields(date: string | null): ExtractedFields {
   return {
     date,
 
@@ -55,10 +128,391 @@ function emptyExtractedFields(date: string | null) {
   };
 }
 
-function emptyDetails() {
+function emptyDetails(): Details {
   return {
     medicationItems: [],
     metrics: [],
+  };
+}
+
+/* ============================================================
+   Normalization Helpers
+============================================================ */
+
+function normalizeNullableString(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") return String(value).trim() || null;
+
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  if (!cleaned) return null;
+
+  const lower = cleaned.toLowerCase();
+  if (["null", "undefined", "n/a", "na", "unknown", "-"].includes(lower)) {
+    return null;
+  }
+
+  return cleaned;
+}
+
+function normalizeMultilineString(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") return normalizeNullableString(value);
+
+  const cleaned = value
+    .split("\n")
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n");
+
+  return cleaned || null;
+}
+
+function normalizeDateString(value: unknown): string | null {
+  const s = normalizeNullableString(value);
+  if (!s) return null;
+
+  // Accept only YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // Try Date parsing as fallback, then convert to YYYY-MM-DD
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    return d.toISOString().slice(0, 10);
+  }
+
+  return null;
+}
+
+function normalizeNumber(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const cleaned = value.replace(/,/g, "").trim();
+    if (!cleaned) return null;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function normalizeScheduleTimes(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return Array.from(
+    new Set(
+      value
+        .map((v) => (typeof v === "string" ? v.trim() : ""))
+        .filter((v) => /^\d{2}:\d{2}$/.test(v))
+    )
+  );
+}
+
+function normalizeMedicationItem(item: any, documentDate: string | null): MedicationItem | null {
+  const name = normalizeNullableString(item?.name);
+  if (!name) return null;
+
+  let startDate = normalizeDateString(item?.startDate);
+  const endDate = normalizeDateString(item?.endDate);
+
+  if (!startDate && documentDate) {
+    startDate = documentDate;
+  }
+
+  return {
+    name,
+    strength: normalizeNullableString(item?.strength),
+    doseQuantity: normalizeNumber(item?.doseQuantity),
+    doseUnit: normalizeNullableString(item?.doseUnit),
+    scheduleTimes: normalizeScheduleTimes(item?.scheduleTimes),
+    startDate,
+    endDate,
+    instructions: normalizeNullableString(item?.instructions),
+  };
+}
+
+function normalizeReferenceRange(value: any): ReferenceRange | null {
+  if (!value || typeof value !== "object") return null;
+
+  const low = normalizeNumber(value.low);
+  const high = normalizeNumber(value.high);
+  const text = normalizeNullableString(value.text);
+
+  if (low == null && high == null && text == null) return null;
+
+  return { low, high, text };
+}
+
+function inferFastingFromMetricName(name: string | null): boolean | null {
+  if (!name) return null;
+  const n = name.trim().toUpperCase();
+
+  if (n === "FBS" || n.includes("FASTING")) return true;
+  if (n === "RBS" || n === "PPBS" || n.includes("RANDOM")) return false;
+
+  return null;
+}
+
+function normalizeMetricItem(item: any, documentDate: string | null): MetricItem | null {
+  const name = normalizeNullableString(item?.name);
+  if (!name) return null;
+
+  let date = normalizeDateString(item?.date);
+
+  let dateSource: "explicit" | "document" | "unknown" =
+    item?.dateSource === "explicit" ||
+    item?.dateSource === "document" ||
+    item?.dateSource === "unknown"
+      ? item.dateSource
+      : "unknown";
+
+  if (date) {
+    if (dateSource === "unknown") dateSource = "explicit";
+  } else if (documentDate) {
+    date = documentDate;
+    dateSource = "document";
+  } else {
+    date = null;
+    dateSource = "unknown";
+  }
+
+  let fasting: boolean | null =
+    typeof item?.fasting === "boolean" ? item.fasting : null;
+
+  if (fasting == null) {
+    fasting = inferFastingFromMetricName(name);
+  }
+
+  return {
+    name,
+    value: normalizeNumber(item?.value),
+    unit: normalizeNullableString(item?.unit),
+    date,
+    dateSource,
+    fasting,
+    referenceRange: normalizeReferenceRange(item?.referenceRange),
+  };
+}
+
+function normalizeExtractedFields(fields: any): ExtractedFields {
+  return {
+    date: normalizeDateString(fields?.date),
+
+    doctorName: normalizeNullableString(fields?.doctorName),
+    hospital: normalizeNullableString(fields?.hospital),
+
+    symptoms: normalizeMultilineString(fields?.symptoms),
+    diagnosis: normalizeMultilineString(fields?.diagnosis),
+    notes: normalizeMultilineString(fields?.notes),
+
+    medications: normalizeMultilineString(fields?.medications),
+    dosage: normalizeMultilineString(fields?.dosage),
+    frequency: normalizeMultilineString(fields?.frequency),
+
+    testName: normalizeNullableString(fields?.testName),
+    results: normalizeMultilineString(fields?.results),
+
+    imagingType: normalizeNullableString(fields?.imagingType),
+    bodyPart: normalizeNullableString(fields?.bodyPart),
+    findings: normalizeMultilineString(fields?.findings),
+
+    provider: normalizeNullableString(fields?.provider),
+    policyNumber: normalizeNullableString(fields?.policyNumber),
+    claimNumber: normalizeNullableString(fields?.claimNumber),
+    coverageDetails: normalizeMultilineString(fields?.coverageDetails),
+  };
+}
+
+function buildMedicationSummary(items: MedicationItem[]): string | null {
+  const names = Array.from(
+    new Set(
+      items
+        .map((m) => normalizeNullableString(m.name))
+        .filter(Boolean) as string[]
+    )
+  );
+  return names.length ? names.join(", ") : null;
+}
+
+function buildDosageSummary(items: MedicationItem[]): string | null {
+  const lines = items
+    .map((m) => {
+      const left = [m.name, m.strength].filter(Boolean).join(" ");
+      const dose =
+        m.doseQuantity != null || m.doseUnit
+          ? `${m.doseQuantity != null ? m.doseQuantity : ""}${m.doseUnit ? ` ${m.doseUnit}` : ""}`.trim()
+          : null;
+
+      if (!left && !dose) return null;
+      if (left && dose) return `${left} - ${dose}`;
+      return left || dose;
+    })
+    .filter(Boolean) as string[];
+
+  return lines.length ? lines.join("\n") : null;
+}
+
+function buildFrequencySummary(items: MedicationItem[]): string | null {
+  const lines = items
+    .map((m) => {
+      let freq: string | null = null;
+
+      if (m.scheduleTimes.length === 3) freq = "TDS";
+      else if (m.scheduleTimes.length === 2) freq = "BD";
+      else if (m.scheduleTimes.length === 1) freq = "OD";
+
+      if (!freq && m.instructions) {
+        const ins = m.instructions.toUpperCase();
+        if (ins.includes("Q6H")) freq = "Q6H";
+        else if (ins.includes("SOS")) freq = "SOS";
+      }
+
+      const parts: string[] = [];
+      if (freq) parts.push(freq);
+
+      if (m.startDate && m.endDate) {
+        const start = new Date(m.startDate);
+        const end = new Date(m.endDate);
+        if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+          const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+          if (days > 0) parts.push(`(${days} days)`);
+        }
+      }
+
+      if (!parts.length) return null;
+      return `${m.name} - ${parts.join(" ")}`;
+    })
+    .filter(Boolean) as string[];
+
+  return lines.length ? lines.join("\n") : null;
+}
+
+function buildResultsSummary(metrics: MetricItem[]): string | null {
+  const lines = metrics
+    .map((m) => {
+      const valuePart = m.value != null ? `${m.value}` : null;
+      const unitPart = m.unit || null;
+      const base = [m.name + ":", valuePart, unitPart].filter(Boolean).join(" ").trim();
+
+      if (!base) return null;
+
+      const refText = m.referenceRange?.text;
+      return refText ? `${base} (Ref: ${refText})` : base;
+    })
+    .filter(Boolean) as string[];
+
+  return lines.length ? lines.join("\n") : null;
+}
+
+function dedupeMedicationItems(items: MedicationItem[]): MedicationItem[] {
+  const seen = new Set<string>();
+  const result: MedicationItem[] = [];
+
+  for (const item of items) {
+    const key = JSON.stringify({
+      name: item.name.toLowerCase(),
+      strength: item.strength?.toLowerCase() ?? null,
+      doseQuantity: item.doseQuantity,
+      doseUnit: item.doseUnit?.toLowerCase() ?? null,
+      scheduleTimes: item.scheduleTimes,
+      startDate: item.startDate,
+      endDate: item.endDate,
+      instructions: item.instructions?.toLowerCase() ?? null,
+    });
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(item);
+    }
+  }
+
+  return result;
+}
+
+function dedupeMetrics(items: MetricItem[]): MetricItem[] {
+  const seen = new Set<string>();
+  const result: MetricItem[] = [];
+
+  for (const item of items) {
+    const key = JSON.stringify({
+      name: item.name.toLowerCase(),
+      value: item.value,
+      unit: item.unit?.toLowerCase() ?? null,
+      date: item.date,
+      dateSource: item.dateSource,
+    });
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(item);
+    }
+  }
+
+  return result;
+}
+
+function normalizeFinalData(raw: any, category: string): ValidateResult {
+  const isMedical = Boolean(raw?.isMedical);
+  const reason = normalizeNullableString(raw?.reason);
+  const extractedText = normalizeMultilineString(raw?.extractedText);
+
+  if (!isMedical) {
+    return {
+      isMedical: false,
+      reason: reason || "This file does not appear to be a medical document.",
+      extractedText: null,
+      extractedFields: null,
+      details: null,
+    };
+  }
+
+  const extractedFields = normalizeExtractedFields(raw?.extractedFields ?? {});
+  const documentDate = extractedFields.date;
+
+  const medicationItems = Array.isArray(raw?.details?.medicationItems)
+    ? raw.details.medicationItems
+        .map((m: any) => normalizeMedicationItem(m, documentDate))
+        .filter(Boolean)
+    : [];
+
+  const metrics = Array.isArray(raw?.details?.metrics)
+    ? raw.details.metrics
+        .map((m: any) => normalizeMetricItem(m, documentDate))
+        .filter(Boolean)
+    : [];
+
+  const details: Details = {
+    medicationItems: dedupeMedicationItems(medicationItems as MedicationItem[]),
+    metrics: dedupeMetrics(metrics as MetricItem[]),
+  };
+
+  /* --------------------------------------------
+     Repair extractedFields from structured details
+  -------------------------------------------- */
+
+  if (category === "Prescription") {
+    if (!extractedFields.medications && details.medicationItems.length) {
+      extractedFields.medications = buildMedicationSummary(details.medicationItems);
+    }
+
+    if (!extractedFields.dosage && details.medicationItems.length) {
+      extractedFields.dosage = buildDosageSummary(details.medicationItems);
+    }
+
+    if (!extractedFields.frequency && details.medicationItems.length) {
+      extractedFields.frequency = buildFrequencySummary(details.medicationItems);
+    }
+  }
+
+  if ((category === "Lab Report" || category === "Doctor Note") && !extractedFields.results && details.metrics.length) {
+    extractedFields.results = buildResultsSummary(details.metrics);
+  }
+
+  return {
+    isMedical: true,
+    reason: null,
+    extractedText,
+    extractedFields,
+    details,
   };
 }
 
@@ -79,8 +533,8 @@ function mockByCategory(category: string, dateFromUser: string) {
         extractedFields: {
           ...emptyExtractedFields(date),
           medications: "Paracetamol",
-          dosage: "500mg",
-          frequency: "Twice daily",
+          dosage: "Paracetamol 500mg - 2 tablet",
+          frequency: "Paracetamol - BD",
           doctorName: "Dr. Amanda Silva",
           hospital: "Asiri Hospital",
           diagnosis: "Viral infection",
@@ -111,7 +565,7 @@ function mockByCategory(category: string, dateFromUser: string) {
         extractedFields: {
           ...emptyExtractedFields(date),
           testName: "Diabetes Panel",
-          results: "FBS 110 mg/dL\nHbA1c 6.2 %",
+          results: "FBS: 110 mg/dL (Ref: 70-110)\nHbA1c: 6.2 % (Ref: 4.0-5.6)",
           hospital: "Asiri Laboratory",
         },
         details: {
@@ -122,7 +576,7 @@ function mockByCategory(category: string, dateFromUser: string) {
               value: 110,
               unit: "mg/dL",
               date,
-              dateSource: "document", // ✅ NEW
+              dateSource: "document",
               fasting: true,
               referenceRange: { low: 70, high: 110, text: "70-110" },
             },
@@ -131,7 +585,8 @@ function mockByCategory(category: string, dateFromUser: string) {
               value: 6.2,
               unit: "%",
               date,
-              dateSource: "document", // ✅ NEW
+              dateSource: "document",
+              fasting: null,
               referenceRange: { low: 4.0, high: 5.6, text: "4.0-5.6" },
             },
           ],
@@ -166,6 +621,7 @@ function mockByCategory(category: string, dateFromUser: string) {
           diagnosis: "Viral infection",
           doctorName: "Dr. Amanda Silva",
           hospital: "Asiri Hospital",
+          results: "BP_SYS: 120 mmHg (Ref: 90-120)\nBP_DIA: 80 mmHg (Ref: 60-80)",
         },
         details: {
           ...emptyDetails(),
@@ -175,7 +631,7 @@ function mockByCategory(category: string, dateFromUser: string) {
               value: 120,
               unit: "mmHg",
               date,
-              dateSource: "document", // ✅ NEW
+              dateSource: "document",
               fasting: null,
               referenceRange: { low: 90, high: 120, text: "90-120" },
             },
@@ -184,7 +640,7 @@ function mockByCategory(category: string, dateFromUser: string) {
               value: 80,
               unit: "mmHg",
               date,
-              dateSource: "document", // ✅ NEW
+              dateSource: "document",
               fasting: null,
               referenceRange: { low: 60, high: 80, text: "60-80" },
             },
@@ -268,6 +724,7 @@ export async function POST(req: Request) {
 
     const mime = file.type || "";
     const allowed = ["image/jpeg", "image/png", "application/pdf"];
+
     if (!allowed.includes(mime)) {
       return NextResponse.json(
         { message: `Unsupported file type: ${mime}` },
@@ -286,7 +743,10 @@ export async function POST(req: Request) {
           details: null,
         });
       }
-      return NextResponse.json(mockByCategory(category, date));
+
+      const mocked = mockByCategory(category, date);
+      const normalizedMock = normalizeFinalData(mocked, category);
+      return NextResponse.json(normalizedMock);
     }
 
     const buf = Buffer.from(await file.arrayBuffer());
@@ -594,7 +1054,10 @@ STRICT OUTPUT REQUIREMENTS
                         strength: { type: ["string", "null"] },
                         doseQuantity: { type: ["number", "null"] },
                         doseUnit: { type: ["string", "null"] },
-                        scheduleTimes: { type: "array", items: { type: "string" } },
+                        scheduleTimes: {
+                          type: "array",
+                          items: { type: "string" },
+                        },
                         startDate: { type: ["string", "null"] },
                         endDate: { type: ["string", "null"] },
                         instructions: { type: ["string", "null"] },
@@ -607,23 +1070,25 @@ STRICT OUTPUT REQUIREMENTS
                     items: {
                       type: "object",
                       additionalProperties: false,
-                      required: ["name", "value", "unit", "date", "referenceRange", "fasting", "dateSource"],
+                      required: [
+                        "name",
+                        "value",
+                        "unit",
+                        "date",
+                        "referenceRange",
+                        "fasting",
+                        "dateSource",
+                      ],
                       properties: {
                         name: { type: "string" },
                         value: { type: ["number", "null"] },
                         unit: { type: ["string", "null"] },
                         date: { type: ["string", "null"] },
-
-                        // ✅ ADD THIS
-                          dateSource: {
-                            type: "string",
-                            enum: ["explicit", "document", "unknown"],
-                          },
-
-                        // ✅ NEW
+                        dateSource: {
+                          type: "string",
+                          enum: ["explicit", "document", "unknown"],
+                        },
                         fasting: { type: ["boolean", "null"] },
-
-                        // ✅ NEW
                         referenceRange: {
                           type: ["object", "null"],
                           additionalProperties: false,
@@ -633,10 +1098,10 @@ STRICT OUTPUT REQUIREMENTS
                             high: { type: ["number", "null"] },
                             text: { type: ["string", "null"] },
                           },
+                        },
                       },
                     },
                   },
-                },
                 },
               },
             },
@@ -655,10 +1120,9 @@ STRICT OUTPUT REQUIREMENTS
       );
     }
 
-    // Ensure defaults
-    if (data.isMedical && data.details == null) data.details = emptyDetails();
+    const normalized = normalizeFinalData(data, category);
 
-    return NextResponse.json(data);
+    return NextResponse.json(normalized);
   } catch (err: any) {
     console.error("AI ERROR:", err);
     return NextResponse.json(
