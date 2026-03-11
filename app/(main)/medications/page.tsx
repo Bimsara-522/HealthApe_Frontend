@@ -416,8 +416,7 @@ interface MedicationCardProps {
 }
 
 function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete }: MedicationCardProps) {
-  const isLowStock = medication.remainingQuantity <= medication.refillReminderDays;
-  
+ 
   // Calculate days until end (if not ongoing)
   const daysUntilEnd = medication.endDate 
     ? Math.ceil((new Date(medication.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -444,12 +443,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
               {medication.form}
             </span>
             
-            {/* Low stock warning */}
-            {isLowStock && (
-              <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                Low Stock
-              </span>
-            )}
+  
             
             {/* Unverified instructions warning */}
             {!medication.instructionsVerified && (
@@ -487,13 +481,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
               </span>
             )}
             
-            {/* Stock */}
-            <span className={cn(
-              'flex items-center gap-1',
-              isLowStock ? 'text-red-600 font-medium' : ''
-            )}>
-              💊 {medication.remainingQuantity} {medication.form}s left
-            </span>
+    
             
             {/* Doctor */}
             {medication.prescribedBy && (
@@ -548,6 +536,7 @@ export default function MedicationsPage() {
   // Edit modal state
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
   const [editInstructions, setEditInstructions] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
   // Toast state
@@ -756,6 +745,7 @@ export default function MedicationsPage() {
     if (!med) return;
     setEditingMedication(med);
     setEditInstructions(med.instructions ?? '');
+    setEditEndDate(med.endDate ? new Date(med.endDate).toISOString().slice(0, 10) : '');
     setOpenMenuId(null);
   };
   
@@ -768,7 +758,11 @@ export default function MedicationsPage() {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructions: editInstructions }),
+        body: JSON.stringify({
+          instructions: editInstructions,
+          endDate: editEndDate || null,
+          isOngoing: !editEndDate,
+        }),
       });
       
       if (!res.ok) throw new Error('Failed to update');
@@ -984,6 +978,15 @@ const confirmDelete = async () => {
               placeholder="e.g. Take with food"
             />
 
+            <label className="block text-xs font-medium text-gray-500 mb-1 mt-4">
+              End Date <span className="text-gray-400">(leave empty if ongoing)</span>
+            </label>
+            <input
+             type="date"
+             value={editEndDate}
+             onChange={(e) => setEditEndDate(e.target.value)}
+             className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+            />
             <p className="text-xs text-emerald-600 mt-2">
               ✅ Saving will mark instructions as verified and remove the warning badge.
             </p>
