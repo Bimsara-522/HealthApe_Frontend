@@ -6,6 +6,7 @@
 import React from 'react';
 import { Menu, Bell, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import NotificationsBell from '@/app/(main)/notifications/ui/NotificationsBell';
 
 //Props interface
 interface HeaderProps {
@@ -43,11 +44,12 @@ export function Header({
         <div className="flex items-center gap-4">
           
           {/* Notification Bell */}
-          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <Bell className="w-6 h-6 text-gray-500" />
+          {/* <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <Bell className="w-6 h-6 text-gray-500" /> */}
             {/* Red notification dot */}
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-          </button>
+            {/* <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+          </button> */}
+          <NotificationsBell />
 
           {/* User Info */}
           <div className="flex items-center gap-3">
