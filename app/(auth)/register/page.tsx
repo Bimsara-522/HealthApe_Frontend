@@ -21,19 +21,22 @@ export default function RegisterPage() {
     const [message, setMessage] = useState('');
     const router = useRouter();
     const handleSignUp = async (data: signUpForm) => {
-        try {
-            await api.post('/auth/signup', data);
-            // setMessage('Registration successful! Redirecting to login...');
-            setMessage('Registration successful! Redirecting...');
-            setShowSuccess(true);
-            setTimeout(() => router.push('/login'), 2000);
-        } catch (error: any) {
-            setErrorMessage(
-                error.response?.data?.message || 
-                'Registration failed. Please try again.'
-            );
-            setShowError(true);
-}
+    try {
+        const res = await api.post('/auth/signup', data);
+
+        setMessage(res.data?.message || 'Account created. Please verify your email.');
+        setShowSuccess(true);
+
+        setTimeout(() => {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
+        }, 1500);
+    } catch (error: any) {
+        setErrorMessage(
+        error.response?.data?.message ||
+        'Registration failed. Please try again.'
+        );
+        setShowError(true);
+    }
     };
 
   return (
