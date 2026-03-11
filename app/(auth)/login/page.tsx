@@ -97,8 +97,13 @@ export default function LoginPage() {
                         </button>
  
                         <p className="text-center text-sm text-blue-600 mt-4">
-                            <Link href="/auth/forgot-password">
+                            <Link href="/forgot-password">
                                 Forgot your password?
+                            </Link>
+                        </p>
+                        <p className="text-center text-sm text-blue-600 mt-4">
+                            <Link href="/register">
+                                Don't have an account?
                             </Link>
                         </p>
                     </div>
