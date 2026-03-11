@@ -5,6 +5,7 @@ import { AppointmentList } from '@/components/appointments/AppointmentList'
 import type { Appointment } from 'app/(main)/appointments/types/appointment'
 import { AppointmentStatusBadge } from '@/components/appointments/AppointmentStatusBadge'
 import { useAppointments } from 'app/(main)/appointments/hooks/useAppointments'
+import Link from 'next/link'
 
 export default function AppointmentsAllClient() {
   const { data: appointments, isLoading, error } = useAppointments()
@@ -14,35 +15,45 @@ export default function AppointmentsAllClient() {
   // Month format from <input type="month" /> is "YYYY-MM"
   const [selectedMonth, setSelectedMonth] = useState<string>('')
 
-  if (isLoading) {
-    return <div className="p-6">Loading appointments...</div>
-  }
-  if (error || !appointments) {
-    return <div className="p-6 text-red-600">Failed to load appointments</div>
-  }
-  const upcoming = appointments
-    .filter(a => {
-      const d = new Date(a.date)
-      d.setHours(0, 0, 0, 0)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      return d >= today
-    })
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  const upcoming = useMemo(() => {
+    if (!appointments) return []
+
+    return appointments
+      .filter((a) => {
+        const d = new Date(a.date)
+        d.setHours(0, 0, 0, 0)
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        return d >= today
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [appointments])
 
   // Filtered list (computed)
   const filteredAppointments = useMemo(() => {
     if (!selectedMonth) return upcoming
-    return upcoming.filter(a => a.date.slice(0, 7) === selectedMonth)
+    return upcoming.filter((a) => a.date.slice(0, 7) === selectedMonth)
   }, [upcoming, selectedMonth])
+
+  if (isLoading) {
+    return <div className="p-6">Loading appointments...</div>
+  }
+  if (error) {
+    return <div className="p-6 text-red-600">Failed to load appointments</div>
+  }
 
   return (
     <div className="p-6">
+        <Link className="text-blue-600 hover:underline text-sm" href="/appointments">
+            ← Back to appointments
+          </Link>
       <div className="max-w-8xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">All Upcoming Appointments</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mt-4">All Upcoming Appointments</h1>
             <p className="text-sm text-gray-500 mt-1">
               View and filter your upcoming bookings.
             </p>
@@ -117,7 +128,7 @@ export default function AppointmentsAllClient() {
                           {a.doctor?.name ?? a.doctorNameSnapshot}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {a.doctor?.name ?? a.doctorNameSnapshot}
+                          {a.doctor?.specialty ?? '-'}
                         </div>
                       </td>
 

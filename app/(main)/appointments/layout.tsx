@@ -1,5 +1,3 @@
-import ReactQueryProvider from 'app/(main)/appointments/ui/ReactQueryProvider'
-
 export default function AppointmentsLayout({
   children,
 }: {
@@ -10,5 +8,5 @@ export default function AppointmentsLayout({
   // /appointments/new
   // /appointments/[id]
   // /appointments/[id]/edit
-  return <ReactQueryProvider>{children}</ReactQueryProvider>
+  return <>{children}</>
 }

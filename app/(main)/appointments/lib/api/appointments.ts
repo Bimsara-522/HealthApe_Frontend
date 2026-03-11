@@ -5,6 +5,7 @@ import type { Appointment, CreateAppointmentDto, UpdateAppointmentDto } from 'ap
 // Fetch appointments list (for use in hooks/client components)
 export async function getAppointments(params: { month: string | undefined }): Promise<Appointment[]> {
   const queryParams = params.month ? { month: params.month } : {}
+  // GET /appointments?month=YYYY-MM
   const { data } = await api.get<Appointment[]>('/appointments', { params: queryParams })  // ← Sends month: undefined
   console.log("appointments:", data);
   return data
@@ -13,35 +14,38 @@ export async function getAppointments(params: { month: string | undefined }): Pr
 // Get the next upcoming appointment
 export async function getNextAppointment(): Promise<Appointment | null> {
   try {
+    // ask backend for next appointment directly
     const { data } = await api.get<Appointment>('/appointments/next')
     return data
   } catch (error: any) {
-    // Backend doesn't have /appointments/next endpoint (404), so fetch all and filter client-side
+    // Backend doesn't have /appointments/next endpoint (404), so compute next appointment client-side
     console.log('Backend does not have /appointments/next endpoint, falling back to client-side filtering')
     const allAppointments = await getAppointments({ month: undefined })
-    // const nextVisit = allAppointments
-    //   .filter(a => new Date(a.date) > new Date())
-    //   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]
+  
     const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    today.setHours(0, 0, 0, 0)  // ignore time part for comparison
     const nextVisit = allAppointments
+       // Keep only appointments today or in the future
       .filter(a => {
         const d = new Date(a.date)
         d.setHours(0, 0, 0, 0)
         return d >= today
       })
+      // Sort by appointment date first, then by time
       .sort((a, b) => {
         const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime()
         if (dateCompare !== 0) return dateCompare
+        // If same date, compare time (string like "09:30")
         return a.time.localeCompare(b.time)
       })[0]
     return nextVisit || null
   }
 }
 
-// Get a single appointment by its ID.
+// Get a single appointment by its ID
 export async function getAppointmentById(id: string): Promise<Appointment> {
-  const { data } = await api.get<Appointment>(`/appointments/${id}`)
+  // GET /appointments/:id
+  const { data } = await api.get<Appointment>(`/appointments/${id}`) 
   return data
 }
 
@@ -61,7 +65,3 @@ export async function updateAppointment(id: string, dto: UpdateAppointmentDto): 
 export async function cancelAppointment(id: string): Promise<void> {
   await api.patch(`/appointments/${id}/cancel`)
 }
-// export async function cancelAppointment(id: string): Promise<void> {
-//   await api.patch(`/appointments/${id}`, { status: 'cancelled' }) // Sends PATCH request
-//   // Only updates the status field to "cancelled"
-// }
