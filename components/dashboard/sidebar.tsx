@@ -4,7 +4,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -44,15 +44,40 @@ const navigationItems = [
 interface SidebarProps {
   isOpen: boolean;      //Is sidebar visible on mobile?
   onClose: () => void;  //Function to close sidebar
+  onLogoutClick: () => void;
 }
 
 
 //Sidebar component
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
   //usePathname() gives us the current URL path
   //We use this to highlight the active menu item
   const { logout } = useAuth();
   const pathname = usePathname();
+  // Pulsing dot state for new medications
+  const [newMedication, setNewMedication] = useState(false);
+  
+  useEffect(() => {
+  // Check immediately
+  const flag = sessionStorage.getItem('newMedicationAdded');
+  if (flag === 'true') setNewMedication(true);
+
+  // Also poll every second to catch same-page saves
+  const interval = setInterval(() => {
+    const flag = sessionStorage.getItem('newMedicationAdded');
+    if (flag === 'true') setNewMedication(true);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [pathname]);
+  
+  useEffect(() => {
+    // Clear the flag when user visits medications page
+    if (pathname === '/medications') {
+      sessionStorage.removeItem('newMedicationAdded');
+      setNewMedication(false);
+    }
+  }, [pathname]);
 
   return (
     <>
@@ -130,14 +155,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     )}
                   >
                     {/* Icon */}
-                    <item.icon 
+                    <item.icon
                       className={cn(
                         'w-5 h-5',
                         isActive ? 'text-blue-600' : 'text-gray-400'
-                      )} 
+                        )} 
                     />
                     {/* Menu item text */}
                     <span>{item.name}</span>
+                    
+                    {/* Pulsing dot — only shows on Medications when new prescription was saved */}
+                    {item.name === 'Medications' && newMedication && (
+                      <span className="ml-auto flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -148,12 +181,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* LOGOUT BUTTON (Bottom) */}
         <div className="px-4 py-4 border-t border-gray-100">
           <button
-            onClick={async () => {
-              await logout();
-
-              if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                onClose();
-              }
+            onClick={() => {
+              onLogoutClick();
+              if (typeof window !== 'undefined' && window.innerWidth < 1024) onClose();
             }}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 hover:bg-red-50 transition-all duration-200"
           >
