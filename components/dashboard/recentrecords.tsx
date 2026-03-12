@@ -93,7 +93,7 @@ export function RecentRecords({ records, loading = false }: RecentRecordsProps) 
             </div>
             <h4 className="font-semibold text-gray-800 mb-1">No records yet</h4>
             <p className="text-sm text-gray-400 mb-4 max-w-xs mx-auto">
-              Upload your first medical document — lab results, prescriptions, or scan reports — and they&apos;ll appear here.
+              Upload your first medical document. Lab results, prescriptions, or scan reports and they&apos;ll appear here.
             </p>
             <Link
               href="/upload"

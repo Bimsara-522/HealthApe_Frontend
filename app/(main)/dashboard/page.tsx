@@ -13,7 +13,7 @@ import { UpcomingAppointment } from '@/components/dashboard/upcomingappointments
 import { MedicationsWidget } from '@/components/dashboard/medicationswidget';
 
 // Import types
-import type { Appointment } from '@/components/dashboard/upcomingappointments';
+import { useNextAppointment, useUpcomingCount } from '@/hooks/useAppointment';
 import type { Medication } from '@/components/dashboard/medicationswidget';
 import { useAuth } from '@/context/AuthContext';
 import { useRecentRecords } from '@/hooks/useMedicalRecords';
@@ -37,13 +37,7 @@ const medications: Medication[] = [
     taken: false,  //Toggle is OFF (gray)
   },
 ];
-const upcomingAppointment: Appointment = {
-  id: '1',
-  doctorName: 'Dr. Sarah Conner',
-  specialty: 'Cardiologist',
-  date: new Date(2025, 11, 16),
-  time: '9:00 AM',
-};
+
 
 
 //Dashboard page component
@@ -51,6 +45,8 @@ const upcomingAppointment: Appointment = {
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const { records: recentRecords, loading: recordsLoading } = useRecentRecords();
+  const { appointment: nextAppointment, loading: appointmentLoading } = useNextAppointment();
+  const { count: upcomingCount } = useUpcomingCount();
   // const router = useRouter();
 
   // useEffect(() => {
@@ -66,16 +62,9 @@ export default function DashboardPage() {
     <div className="space-y-6 animate-fade-in">
       
       {/* ROW 1: Welcome Banner */}
-      <WelcomeBanner 
-        userName={user?.name ?? ''} 
-        upcomingAppointments={1} 
-      />
-      {/* ROW 2: Health Metrics */}
-      <section>
-        <HealthMetricsGrid metrics={[]} />
-      </section>
+      <WelcomeBanner userName={user?.name ?? ''} upcomingAppointments={upcomingCount} />
 
-      {/* ROW 3: Main Content Grid */}
+      {/* ROW 2: Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column - Recent Records (takes 2 columns) */}
@@ -85,7 +74,7 @@ export default function DashboardPage() {
 
         {/* Right Column - Upcoming & Medications */}
         <div className="space-y-6">
-          <UpcomingAppointment appointment={upcomingAppointment} />
+          <UpcomingAppointment appointment={nextAppointment} loading={appointmentLoading} />
           <MedicationsWidget medications={medications} />
         </div>
         
