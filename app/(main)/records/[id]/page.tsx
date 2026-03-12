@@ -222,23 +222,75 @@ export default function RecordDetailPage() {
       )}
 
       {/* Extra Details Card */}
-      {Object.keys(record.details).length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Additional Information</h2>
-          <div className="space-y-2">
-            {Object.entries(record.details)
-              .filter(([, val]) => val !== null && val !== '' && val !== undefined)
-              .map(([key, val]) => (
-                <div key={key} className="flex gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <span className="text-xs text-gray-400 uppercase tracking-wide w-36 flex-shrink-0 pt-0.5">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
+{Object.keys(record.details).length > 0 && (
+  <div className="bg-white rounded-2xl border border-gray-100 p-6">
+    <h2 className="font-semibold text-gray-900 mb-4">Additional Information</h2>
+    <div className="space-y-2">
+
+      {/* Metrics */}
+      {Array.isArray(record.details.metrics) && record.details.metrics.length > 0 && (
+        <div className="py-2 border-b border-gray-50">
+          <span className="text-xs text-gray-400 uppercase tracking-wide block mb-2">Metrics</span>
+          <div className="space-y-1.5">
+            {record.details.metrics.map((m: any, i: number) => (
+              <div key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">
+                <span className="font-medium">{m.name ?? '—'}</span>
+                {m.value != null && (
+                  <span className="ml-2 text-gray-500">
+                    {String(m.value)}{m.unit ? ` ${m.unit}` : ''}
                   </span>
-                  <span className="text-sm text-gray-700">{String(val)}</span>
-                </div>
-              ))}
+                )}
+                {m.referenceRange && (
+                  <span className="ml-2 text-xs text-gray-400">ref: {m.referenceRange}</span>
+                )}
+                {m.date && (
+                  <span className="ml-2 text-xs text-gray-400">{m.date}</span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
+
+      {/* Medication Items */}
+      {Array.isArray(record.details.medicationItems) && record.details.medicationItems.length > 0 && (
+        <div className="py-2 border-b border-gray-50">
+          <span className="text-xs text-gray-400 uppercase tracking-wide block mb-2">Medication Items</span>
+          <div className="space-y-1.5">
+            {record.details.medicationItems.map((med: any, i: number) => (
+              <div key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">
+                <span className="font-medium">{med.name ?? '—'}</span>
+                {med.dosage && <span className="ml-2 text-gray-500">{med.dosage}</span>}
+                {med.frequency && <span className="ml-2 text-xs text-gray-400">({med.frequency})</span>}
+                {med.startDate && <span className="ml-2 text-xs text-gray-400">from {med.startDate}</span>}
+                {med.endDate && <span className="text-xs text-gray-400"> → {med.endDate}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All other scalar fields */}
+      {Object.entries(record.details)
+        .filter(([key, val]) =>
+          key !== 'metrics' &&
+          key !== 'medicationItems' &&
+          key !== 'tags' &&
+          val !== null && val !== '' && val !== undefined &&
+          !Array.isArray(val)
+        )
+        .map(([key, val]) => (
+          <div key={key} className="flex gap-3 py-2 border-b border-gray-50 last:border-0">
+            <span className="text-xs text-gray-400 uppercase tracking-wide w-36 flex-shrink-0 pt-0.5">
+              {key.replace(/([A-Z])/g, ' $1').trim()}
+            </span>
+            <span className="text-sm text-gray-700">{String(val)}</span>
+          </div>
+        ))}
+
+    </div>
+  </div>
+)}
 
     </div>
   );
