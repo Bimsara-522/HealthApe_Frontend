@@ -32,6 +32,8 @@ type Props = {
   onDeleteFile: () => void;
   selectedCategory: UploadCategory | null;
   setSelectedCategory: React.Dispatch<React.SetStateAction<UploadCategory | null>>;
+  lockedToCategory?: boolean;
+  onUnlock?: () => void;
 };
 
 interface UploadTypeCard {
@@ -138,6 +140,9 @@ export default function MiddlePanel({
   onDeleteFile,
   selectedCategory,
   setSelectedCategory,
+  lockedToCategory,
+  onUnlock,
+
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -145,6 +150,9 @@ export default function MiddlePanel({
   const [validated, setValidated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  // Prescription confirmation modal
+  const [showMedConfirm, setShowMedConfirm] = useState(false);
+  
 
   const [toast, setToast] = useState<null | {
     type: "success" | "error" | "loading";
@@ -359,7 +367,7 @@ export default function MiddlePanel({
     }
   };
 
-  const saveRecord = async () => {
+  const saveRecord = async (trackMedications: boolean) => {
     if (!uploadedFile) {
       setErrorMessage("No file to save.");
       return;
@@ -394,6 +402,10 @@ export default function MiddlePanel({
         JSON.stringify(uploadedFile?.details ?? { medicationItems: [], metrics: [] })
       );
 
+      // Send tracking decision
+      fd.append('trackMedications', String(trackMedications));
+      
+
       const res = await fetch(`${API_BASE}/medical-record`, {
         method: "POST",
         credentials: "include",
@@ -408,10 +420,18 @@ export default function MiddlePanel({
       setSaveSuccess(true);
       setToast({
         type: "success",
-        title: "Saved successfully",
-        message: "Your medical record was added to Records.",
+        title: "Saved successfully!",
+        message: trackMedications 
+        ? 'Your prescription was saved and medications added to your schedule.'
+        : 'Your prescription was saved to Records only.',
       });
-      setTimeout(() => setToast(null), 4000);
+
+      // Only set pulsing dot if user chose to track medications
+      if (trackMedications && selectedCategory === 'Prescription') {
+        sessionStorage.setItem('newMedicationAdded', 'true');
+      }
+      setTimeout(() => setToast(null), 10000);
+        
 
       setTimeout(() => {
         resetForm();
@@ -420,6 +440,7 @@ export default function MiddlePanel({
         setValidated(false);
         setSaveSuccess(false);
         setErrorMessage("");
+        onUnlock?.();
       }, 1500);
     } catch (err: any) {
       const msg = err?.message || "Failed to save record. Please try again.";
@@ -587,18 +608,25 @@ export default function MiddlePanel({
               <button
                 key={t.category}
                 type="button"
+                // Disable other categories when navigating from "Add Med" button
+                disabled={lockedToCategory && !isSelected}
                 onClick={() => {
-                  setSelectedCategory(t.category);
-                  if (uploadedFile) {
-                    setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
-                  }
-                }}
-                className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200 ${
-                  isSelected
-                    ? `border-transparent ${t.softBg} ring-2 ${t.ring} shadow-[0_12px_25px_rgba(15,23,42,0.06)]`
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                // Prevent switching category when locked (coming from Add Med)
+                if (lockedToCategory && !isSelected) return;
+                setSelectedCategory(t.category);
+                if (uploadedFile) {
+                  setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
+                }
+              }}
+              className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200 ${
+               // Grey out non-prescription cards when locked to a category
+               lockedToCategory && !isSelected
+                ? 'opacity-40 cursor-not-allowed border-slate-200 bg-slate-50'
+                : isSelected
+                ? `border-transparent ${t.softBg} ring-2 ${t.ring} shadow-[0_12px_25px_rgba(15,23,42,0.06)]`
+                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                 }`}
-              >
+            >
                 <div className="flex items-start justify-between gap-2">
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-2xl transition ${
@@ -609,12 +637,11 @@ export default function MiddlePanel({
                   </div>
 
                   {isSelected && <CheckSolid className="h-4 w-4 text-blue-600" />}
-                </div>
-
-                <div className="mt-3">
-                  <p className={`text-xs font-semibold ${isSelected ? t.color : "text-slate-700"}`}>{t.category}</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{t.description}</p>
-                </div>
+                 </div>
+                   <div className="mt-3">
+                    <p className={`text-xs font-semibold ${isSelected ? t.color : "text-slate-700"}`}>{t.category}</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{t.description}</p>
+                    </div>
               </button>
             );
           })}
@@ -929,7 +956,17 @@ export default function MiddlePanel({
 
         <button
           type="button"
-          onClick={saveRecord}
+          onClick={() => {
+            if (selectedCategory === 'Prescription' && !lockedToCategory) {
+               // Normal upload — ask user
+               setShowMedConfirm(true);
+              } else if (selectedCategory === 'Prescription' && lockedToCategory) {
+                // Coming from Add Med button — always track
+                saveRecord(true);
+              } else {
+                saveRecord(false);
+              }
+            }}
           disabled={busy || !canSave}
           className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
         >
@@ -974,7 +1011,18 @@ export default function MiddlePanel({
 
           <button
             type="button"
-            onClick={canSave ? saveRecord : validateDocument}
+          onClick={canSave 
+              ? () => {
+                if (selectedCategory === 'Prescription' && !lockedToCategory) {
+                  setShowMedConfirm(true);
+                } else if (selectedCategory === 'Prescription' && lockedToCategory) {
+                  saveRecord(true);
+                } else {
+                  saveRecord(false);
+                }
+              }
+            : validateDocument
+          }
             disabled={busy || (canSave ? false : !canValidate)}
             className={`shrink-0 rounded-2xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-40 ${
               canSave
@@ -986,6 +1034,51 @@ export default function MiddlePanel({
           </button>
         </div>
       </div>
+      
+      {/* Prescription Medication Confirmation Modal */}
+      {showMedConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+          className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+          onClick={() => setShowMedConfirm(false)}
+          />
+          <div className="relative w-[420px] max-w-[92vw] rounded-2xl bg-white shadow-2xl border border-gray-200 p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 border border-blue-100 text-2xl">
+                💊
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-gray-900">
+                  Are you currently taking these medications?
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Adding to your schedule will track your daily doses and adherence.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                onClick={() => {
+                  setShowMedConfirm(false);
+                  saveRecord(false);
+                }}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 border border-gray-200"
+                >
+                  No, records only
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMedConfirm(false);
+                    saveRecord(true);
+                  }}
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Yes, add to schedule
+                </button>
+              </div>
+            </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes toastIn {

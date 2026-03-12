@@ -95,6 +95,21 @@ function isNextUpcoming(time: string, doses: ScheduledDose[]): boolean {
   return slotMinutes >= currentMinutes;
 }
 
+// Check if a time slot is within the 2 hour grace period
+function isInGracePeriod(time: string, doses: ScheduledDose[]): boolean {
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const [hours, minutes] = time.split(':').map(Number);
+  const slotMinutes = hours * 60 + minutes;
+
+  // Only applies to slots that have passed but within 2 hours
+  const minutesPassed = currentMinutes - slotMinutes;
+  const hasPending = doses.some(d => d.status === 'pending');
+
+  return hasPending && minutesPassed > 0 && minutesPassed <= 120;
+}
+
 
 // TIME SLOT COMPONENT
 
@@ -102,29 +117,37 @@ interface TimeSlotProps {
   time: string;
   doses: ScheduledDose[];
   isNext: boolean;
+  isGrace: boolean;
   onMarkTaken: (doseId: string) => void;
   onMarkSkipped: (doseId: string) => void;
 }
 
-function TimeSlot({ time, doses, isNext, onMarkTaken, onMarkSkipped }: TimeSlotProps) {
-  // Check if all doses in this slot are completed
+function TimeSlot({ time, doses, isNext, isGrace, onMarkTaken, onMarkSkipped }: TimeSlotProps) {  // Check if all doses in this slot are completed
   const allCompleted = doses.every(d => d.status === 'taken' || d.status === 'skipped');
   
   return (
     <div className={cn(
       'bg-white rounded-2xl border p-4',
-      isNext ? 'border-blue-300 ring-2 ring-blue-100' : 'border-gray-100'
+      isNext ? 'border-blue-300 ring-2 ring-blue-100' :
+      isGrace ? 'border-amber-300 ring-2 ring-amber-100' : 'border-gray-100'
     )}>
       {/* Time Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Clock className={cn(
             'w-5 h-5',
-            allCompleted ? 'text-green-500' : isNext ? 'text-blue-500' : 'text-gray-400'
+            allCompleted ? 'text-green-500' : 
+            isNext ? 'text-blue-500' : 
+            isGrace ? 'text-amber-500' :
+            'text-gray-400'
           )} />
+          
           <span className={cn(
             'font-semibold',
-            allCompleted ? 'text-green-600' : isNext ? 'text-blue-600' : 'text-gray-700'
+            allCompleted ? 'text-green-600' : 
+            isNext ? 'text-blue-600' : 
+            isGrace ? 'text-amber-600' :
+            'text-gray-700'
           )}>
             {formatTime(time)}
           </span>
@@ -134,6 +157,12 @@ function TimeSlot({ time, doses, isNext, onMarkTaken, onMarkSkipped }: TimeSlotP
           <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
             NEXT
           </span>
+        )}
+
+        {isGrace && !allCompleted && (
+          <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full animate-pulse">
+            Take Soon!
+            </span>
         )}
         
         {allCompleted && (
@@ -293,13 +322,14 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
           if (isNext) foundNext = true;
           
           return (
-            <TimeSlot
-              key={time}
-              time={time}
-              doses={timeDoses}
-              isNext={isNext}
-              onMarkTaken={onMarkTaken}
-              onMarkSkipped={onMarkSkipped}
+           <TimeSlot
+             key={time}
+             time={time}
+             doses={timeDoses}
+             isNext={isNext}
+             isGrace={!foundNext && !isNext && isInGracePeriod(time, timeDoses)}
+             onMarkTaken={onMarkTaken}
+             onMarkSkipped={onMarkSkipped}
             />
           );
         })}
@@ -416,8 +446,7 @@ interface MedicationCardProps {
 }
 
 function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete }: MedicationCardProps) {
-  const isLowStock = medication.remainingQuantity <= medication.refillReminderDays;
-  
+ 
   // Calculate days until end (if not ongoing)
   const daysUntilEnd = medication.endDate 
     ? Math.ceil((new Date(medication.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -444,12 +473,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
               {medication.form}
             </span>
             
-            {/* Low stock warning */}
-            {isLowStock && (
-              <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                Low Stock
-              </span>
-            )}
+  
             
             {/* Unverified instructions warning */}
             {!medication.instructionsVerified && (
@@ -487,13 +511,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
               </span>
             )}
             
-            {/* Stock */}
-            <span className={cn(
-              'flex items-center gap-1',
-              isLowStock ? 'text-red-600 font-medium' : ''
-            )}>
-              💊 {medication.remainingQuantity} {medication.form}s left
-            </span>
+    
             
             {/* Doctor */}
             {medication.prescribedBy && (
@@ -548,6 +566,7 @@ export default function MedicationsPage() {
   // Edit modal state
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
   const [editInstructions, setEditInstructions] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
   // Toast state
@@ -577,8 +596,11 @@ export default function MedicationsPage() {
         const today = new Date().toISOString().slice(0, 10);
         const doses: ScheduledDose[] = [];
         data.forEach((med) => {
-          (med.times ?? []).forEach((time, index) => {
+        // Skip medications that have already ended
+           if (med.endDate && new Date(med.endDate) < new Date()) return;
+           (med.times ?? []).forEach((time, index) => {
             doses.push({
+            
               id: `${med.id}-${index}`,
               medicationId: med.id,
               medication: med,
@@ -626,6 +648,61 @@ export default function MedicationsPage() {
     fetchMedications();
     fetchWeekAdherence();
   }, []);
+
+  // Background checker — runs every minute to mark missed doses
+  useEffect(() => {
+   const checkMissedDoses = async () => {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const today = now.toISOString().slice(0, 10);
+
+    setTodaysSchedule(prev => {
+      const updated = [...prev];
+      let anyMissed = false;
+
+      updated.forEach(dose => {
+        if (dose.status !== 'pending') return;
+
+        const [hours, minutes] = dose.scheduledTime.split(':').map(Number);
+        const slotMinutes = hours * 60 + minutes;
+        const minutesPassed = currentMinutes - slotMinutes;
+
+        // Mark missed if grace period (2 hours) has passed
+        if (minutesPassed > 120) {
+          dose.status = 'missed';
+          anyMissed = true;
+
+          // Log to backend
+          fetch(`${API_BASE}/dose-log`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              medicationId: dose.medicationId,
+              scheduledDate: today,
+              scheduledTime: dose.scheduledTime,
+              status: 'missed',
+            }),
+          }).catch(err => console.error('Failed to log missed dose:', err));
+        }
+      });
+
+      return anyMissed ? updated : prev;
+    });
+
+    // Refresh adherence bar if any doses were missed
+    fetchWeekAdherence();
+  };
+
+  // Run immediately on mount
+  checkMissedDoses();
+
+  // Then run every minute
+  const interval = setInterval(checkMissedDoses, 60000);
+
+  // Cleanup on unmount
+  return () => clearInterval(interval);
+}, []);
 
   // STATE
   const [weeklyAdherence, setWeeklyAdherence] = useState<DayAdherence[]>([
@@ -756,6 +833,7 @@ export default function MedicationsPage() {
     if (!med) return;
     setEditingMedication(med);
     setEditInstructions(med.instructions ?? '');
+    setEditEndDate(med.endDate ? new Date(med.endDate).toISOString().slice(0, 10) : '');
     setOpenMenuId(null);
   };
   
@@ -768,7 +846,11 @@ export default function MedicationsPage() {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instructions: editInstructions }),
+        body: JSON.stringify({
+          instructions: editInstructions,
+          endDate: editEndDate || null,
+          isOngoing: !editEndDate,
+        }),
       });
       
       if (!res.ok) throw new Error('Failed to update');
@@ -984,6 +1066,15 @@ const confirmDelete = async () => {
               placeholder="e.g. Take with food"
             />
 
+            <label className="block text-xs font-medium text-gray-500 mb-1 mt-4">
+              End Date <span className="text-gray-400">(leave empty if ongoing)</span>
+            </label>
+            <input
+             type="date"
+             value={editEndDate}
+             onChange={(e) => setEditEndDate(e.target.value)}
+             className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+            />
             <p className="text-xs text-emerald-600 mt-2">
               ✅ Saving will mark instructions as verified and remove the warning badge.
             </p>
