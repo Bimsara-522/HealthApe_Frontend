@@ -126,3 +126,29 @@ export function useMedicalRecord(id: string) {
 
   return { record, loading, error };
 }
+
+//Fetches only the 5 most recent records for the dashboard
+export function useRecentRecords() {
+  const [records, setRecords] = useState<MedicalRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/medical-record?sortBy=createdAt&sortOrder=desc');
+        setRecords((response.data as MedicalRecord[]).slice(0, 5));
+      } catch (err) {
+        console.error('Failed to fetch recent records:', err);
+        setError('Could not load records.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecent();
+  }, []);
+
+  return { records, loading, error };
+}
