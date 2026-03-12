@@ -47,7 +47,7 @@ export function WelcomeBanner({
 
         {/* Right side - Quick Upload button */}
         <Link
-          href="/dashboard/upload"
+          href="/upload"
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors self-start sm:self-center"
         >
           <Plus className="w-5 h-5" />
