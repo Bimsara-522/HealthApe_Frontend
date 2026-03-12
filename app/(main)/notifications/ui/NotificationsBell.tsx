@@ -17,6 +17,7 @@ export default function NotificationsBell() {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    refetch,
   } = useNotifications()
 
   // Runs when the user clicks a notification item
@@ -34,9 +35,15 @@ export default function NotificationsBell() {
       {/* Bell button that toggles the notifications dropdown */}
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
         aria-label="Open notifications"
+        onClick={() => {
+          setOpen((prev) => {
+            const next = !prev
+            if (!prev) refetch()
+            return next
+          }) 
+        }}
       >       
 
         {/* Bell icon */}
