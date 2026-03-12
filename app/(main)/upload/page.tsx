@@ -10,8 +10,7 @@ import { useSearchParams } from 'next/navigation';
 export default function UploadRecordPage() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') as UploadCategory | null;
-  const lockedToCategory = searchParams.get('category') !== null;
-
+  const [lockedToCategory, setLockedToCategory] = useState(searchParams.get('category') !== null);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<UploadCategory | null>(initialCategory);
@@ -78,6 +77,7 @@ export default function UploadRecordPage() {
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
                 lockedToCategory={lockedToCategory}
+                onUnlock={() => setLockedToCategory(false)}
               />
             </div>
           </div>
