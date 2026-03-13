@@ -45,6 +45,11 @@ export type DataQualityIssue = {
   title: string
   detail: string
   actionLabel: string
+  skipLabel?: string
+  rawName?: string
+  compareName?: string
+  suggestedCanonicalName?: string
+  similarity?: number
 }
 
 export type SnapshotData = {

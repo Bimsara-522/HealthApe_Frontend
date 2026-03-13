@@ -4,45 +4,104 @@ import React, { useEffect, useState } from 'react'
 import SnapshotCard from '@/components/insights/SnapshotCard'
 import LabTrendsCard from '@/components/insights/LabTrendsCard'
 import MilestoneTimelineCard from '@/components/insights/MilestoneTimelineCard'
+import DataQualityCard from '@/components/insights/DataQualityCard'
+import type { DataQualityIssue } from '@/components/insights/types'
 import api from '@/lib/api/client'
 
+type InsightsResponse = {
+  patientName: string | null
+  snapshot: any
+  labs: any[]
+  milestones: any[]
+  attentionItems: any[]
+}
 
 export default function InsightsPage() {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<InsightsResponse | null>(null)
+  const [qualityIssues, setQualityIssues] = useState<DataQualityIssue[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
+  const [qualityLoading, setQualityLoading] = useState(false)
+
+  const loadInsights = async () => {
+    const res = await api.get('/insights/getDetails')
+    setData(res.data)
+  }
+
+  const loadQualityIssues = async () => {
+    setQualityLoading(true)
+    try {
+      const qualityRes = await api.get('/insights/data-quality')
+      setQualityIssues(qualityRes.data ?? [])
+    } finally {
+      setQualityLoading(false)
+    }
+  }
 
   useEffect(() => {
     ;(async () => {
       try {
         setLoading(true)
         setErr(null)
-        const res = await api.get(`/insights/getDetails`)
-        setData(await res.data)
+        await Promise.all([loadInsights(), loadQualityIssues()])
       } catch (e: any) {
-        setErr(e?.message || 'Failed to load insights')
+        setErr(e?.response?.data?.message || e?.message || 'Failed to load insights')
       } finally {
         setLoading(false)
       }
     })()
   }, [])
 
+  const handleMergeMetric = async (issueId: string) => {
+    const issue = qualityIssues.find((q) => q.id === issueId)
+    if (!issue || !issue.rawName || !issue.suggestedCanonicalName) return
+
+    try {
+      await api.post('/insights/merge-metric', {
+        rawName: issue.rawName,
+        canonicalName: issue.suggestedCanonicalName,
+      })
+
+      setQualityIssues((prev) => prev.filter((q) => q.id !== issueId))
+
+      await loadInsights()
+      await loadQualityIssues()
+    } catch (e) {
+      console.error('Failed to merge metric', e)
+    }
+  }
+
+  const handleSkipMetric = async (issueId: string) => {
+    const issue = qualityIssues.find((q) => q.id === issueId)
+    if (!issue || !issue.rawName || !issue.compareName) return
+
+    try {
+      await api.post('/insights/ignore-metric-suggestion', {
+        metricA: issue.rawName,
+        metricB: issue.compareName,
+      })
+
+      setQualityIssues((prev) => prev.filter((q) => q.id !== issueId))
+      await loadQualityIssues()
+    } catch (e) {
+      console.error('Failed to ignore metric suggestion', e)
+    }
+  }
+
   if (loading) return <div className="text-sm text-gray-500">Loading insights…</div>
   if (err) return <div className="text-sm text-red-600">{err}</div>
   if (!data) return null
 
-  // Adapt backend DTO to your existing SnapshotCard props
   const snapshot = {
     lastUpload: data.snapshot?.lastUpload
       ? { ...data.snapshot.lastUpload }
       : { date: '-', type: '-', facility: null },
-    trackedConditions: [], // you can add later when you store diagnoses cleanly
+    trackedConditions: [],
     coverage: data.snapshot?.coverage ?? { label: 'Partial', detail: '' },
   }
 
   const attentionItems = data.attentionItems ?? []
 
-  // Adapt labs to LabTrendsCard expected shape
   const labs = (data.labs ?? []).map((l: any) => ({
     key: l.key,
     displayName: l.name,
@@ -80,8 +139,23 @@ export default function InsightsPage() {
           <MilestoneTimelineCard milestones={milestones} />
         </div>
 
-        {/* Right column intentionally empty for now (Appointment/DataQuality later) */}
-        <div className="lg:col-span-1" />
+        <div className="lg:col-span-1 space-y-6">
+          {qualityLoading ? (
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
+              Loading data quality checks…
+            </div>
+          ) : qualityIssues.length > 0 ? (
+            <DataQualityCard
+              issues={qualityIssues}
+              onAction={handleMergeMetric}
+              onSkip={handleSkipMetric}
+            />
+          ) : (
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
+              No data quality issues found right now.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

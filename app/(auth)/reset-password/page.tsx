@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import api from "@/lib/api/api";
+import axios from "axios";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -87,14 +88,15 @@ export default function ResetPasswordPage() {
       setSuccessMessage(
         res.data?.message || "If an account exists for this email, a reset code has been sent."
       );
-    } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message || "Failed to resend code."
+    } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+            setErrorMessage(error.response?.data?.message ?? "Failed to resend code."
       );
-    } finally {
-      setResending(false);
-    }
-  };
+    } 
+    }finally {
+        setResending(false);    
+     }
+  ;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
