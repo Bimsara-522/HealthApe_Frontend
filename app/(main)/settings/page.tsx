@@ -88,3 +88,79 @@ function InputField({
   );
 }
 
+// ─── Toggle 
+function Toggle({
+  enabled,
+  onChange,
+}: {
+  enabled: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+        enabled ? "bg-emerald-500" : "bg-slate-200"
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+          enabled ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+}
+
+// ─── Main Page 
+export default function SettingsPage() {
+  // Profile state
+  const [firstName, setFirstName] = useState(DUMMY_USER.firstName);
+  const [lastName, setLastName] = useState(DUMMY_USER.lastName);
+  const [email, setEmail] = useState(DUMMY_USER.email);
+  const [phone, setPhone] = useState(DUMMY_USER.phone);
+  const [dob, setDob] = useState(DUMMY_USER.dob);
+  const [profileSaved, setProfileSaved] = useState(false);
+
+  // Password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Notification state
+  const [medReminders, setMedReminders] = useState(true);
+  const [appointmentAlerts, setAppointmentAlerts] = useState(false);
+
+  // Toast
+  const [toast, setToast] = useState<null | {
+    type: "success" | "error";
+    title: string;
+    message?: string;
+  }>(null);
+
+  const showToast = (type: "success" | "error", title: string, message?: string) => {
+    setToast({ type, title, message });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleSaveProfile = () => {
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      showToast("error", "Missing fields", "First name, last name and email are required.");
+      return;
+    }
+    setProfileSaved(true);
+    showToast("success", "Profile updated!", "Your profile changes have been saved.");
+    setTimeout(() => setProfileSaved(false), 3000);
+  };
+
+  const handleSaveNotifications = () => {
+    showToast("success", "Preferences saved!", "Your notification settings have been updated.");
+  };
+
+  const todayDate = new Date().toISOString().slice(0, 10);
+
+  
