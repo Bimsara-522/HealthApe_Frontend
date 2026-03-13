@@ -7,6 +7,8 @@ import MilestoneTimelineCard from '@/components/insights/MilestoneTimelineCard'
 import DataQualityCard from '@/components/insights/DataQualityCard'
 import type { DataQualityIssue } from '@/components/insights/types'
 import api from '@/lib/api/client'
+import { useRouter } from 'next/navigation'
+import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
 
 type InsightsResponse = {
   patientName: string | null
@@ -16,16 +18,36 @@ type InsightsResponse = {
   attentionItems: any[]
 }
 
+type MetricMerge = {
+  rawName: string
+  canonicalName: string
+}
+
 export default function InsightsPage() {
   const [data, setData] = useState<InsightsResponse | null>(null)
   const [qualityIssues, setQualityIssues] = useState<DataQualityIssue[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
   const [qualityLoading, setQualityLoading] = useState(false)
+  const [merges, setMerges] = useState<MetricMerge[]>([])
+  const router = useRouter()
 
   const loadInsights = async () => {
     const res = await api.get('/insights/getDetails')
     setData(res.data)
+  }
+
+  const loadMerges = async () => {
+    const res = await api.get('/insights/metric-merges')
+    setMerges(res.data ?? [])
+  }
+
+  const handleUndoMerge = async (rawName: string) => {
+    await api.post('/insights/undo-metric-merge', { rawName })
+
+    await loadInsights()
+    await loadQualityIssues()
+    await loadMerges()
   }
 
   const loadQualityIssues = async () => {
@@ -43,7 +65,7 @@ export default function InsightsPage() {
       try {
         setLoading(true)
         setErr(null)
-        await Promise.all([loadInsights(), loadQualityIssues()])
+        await Promise.all([ loadInsights(), loadQualityIssues(), loadMerges()])
       } catch (e: any) {
         setErr(e?.response?.data?.message || e?.message || 'Failed to load insights')
       } finally {
@@ -124,39 +146,91 @@ export default function InsightsPage() {
   }))
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="space-y-1">
-        <h1 className="text-xl font-bold text-gray-900">Health Insights</h1>
-        <p className="text-sm text-gray-500">
-          Patient: {data.patientName ?? '—'}
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
-          <LabTrendsCard labs={labs} />
-          <MilestoneTimelineCard milestones={milestones} />
-        </div>
+  {/* Top snapshot */}
+  <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
 
-        <div className="lg:col-span-1 space-y-6">
-          {qualityLoading ? (
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
-              Loading data quality checks…
-            </div>
-          ) : qualityIssues.length > 0 ? (
-            <DataQualityCard
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    {/* LEFT MAIN CONTENT */}
+    <div className="lg:col-span-2 space-y-6">
+
+      <LabTrendsCard
+        labs={labs}
+        // onViewReport={handleViewReport}
+        // onTrackTest={handleTrackTest}
+      />
+
+      <MilestoneTimelineCard
+        milestones={milestones}
+        onViewFullHistory={() => router.push('/insights/history')}
+      />
+
+    </div>
+
+    {/* RIGHT SIDEBAR */}
+    <div className="space-y-6">
+
+      <DataQualityCard
               issues={qualityIssues}
               onAction={handleMergeMetric}
               onSkip={handleSkipMetric}
             />
-          ) : (
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
-              No data quality issues found right now.
-            </div>
-          )}
-        </div>
-      </div>
+
+      <MergedMetricsCard
+        merges={merges}
+        onUndo={handleUndoMerge}
+      />
+
     </div>
+
+  </div>
+</div>
+
+
+
+
+
+
+
+    // <div className="space-y-6 animate-fade-in">
+    //   <div className="space-y-1">
+    //     <h1 className="text-xl font-bold text-gray-900">Health Insights</h1>
+    //   </div>
+
+    //   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    //     <div className="lg:col-span-2 space-y-6">
+    //       <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
+    //       <LabTrendsCard labs={labs} />
+    //       <MilestoneTimelineCard
+    //         milestones={milestones}
+    //         onViewFullHistory={() => router.push('/insights/history')}
+    //       />
+    //       <MergedMetricsCard
+    //         merges={merges}
+    //         onUndo={handleUndoMerge}
+    //       />
+    //     </div>
+
+    //     <div className="lg:col-span-1 space-y-6">
+    //       {qualityLoading ? (
+    //         <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
+    //           Loading data quality checks…
+    //         </div>
+    //       ) : qualityIssues.length > 0 ? (
+    //         <DataQualityCard
+    //           issues={qualityIssues}
+    //           onAction={handleMergeMetric}
+    //           onSkip={handleSkipMetric}
+    //         />
+    //       ) : (
+    //         <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
+    //           No data quality issues found right now.
+    //         </div>
+    //       )}
+    //     </div>
+    //   </div>
+    // </div>
   )
 }
