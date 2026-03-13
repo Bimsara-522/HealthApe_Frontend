@@ -163,4 +163,52 @@ export default function SettingsPage() {
 
   const todayDate = new Date().toISOString().slice(0, 10);
 
-  
+  return (
+    <div className="space-y-6 pb-10">
+
+      {/* Toast */}
+      {toast && (
+        <div className="pointer-events-none fixed right-4 top-4 z-[100] w-full max-w-sm">
+          <div
+            className={`pointer-events-auto overflow-hidden rounded-3xl border shadow-[0_18px_50px_rgba(15,23,42,0.12)] backdrop-blur-md ${
+              toast.type === "success"
+                ? "border-emerald-200 bg-white/95"
+                : "border-red-200 bg-white/95"
+            }`}
+          >
+            <div className="flex items-start gap-3 p-4">
+              <div
+                className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+                  toast.type === "success"
+                    ? "bg-emerald-100 text-emerald-600"
+                    : "bg-red-100 text-red-600"
+                }`}
+              >
+                {toast.type === "success" ? (
+                  <CheckCircleIcon className="h-5 w-5" />
+                ) : (
+                  <ExclamationCircleIcon className="h-5 w-5" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm font-semibold ${toast.type === "success" ? "text-emerald-800" : "text-red-800"}`}>
+                  {toast.title}
+                </p>
+                {toast.message && (
+                  <p className={`mt-1 text-xs leading-relaxed ${toast.type === "success" ? "text-emerald-700" : "text-red-700"}`}>
+                    {toast.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="h-1 w-full overflow-hidden bg-slate-100">
+              <div className={`h-full animate-[toastShrink_4s_linear_forwards] ${toast.type === "success" ? "bg-emerald-500" : "bg-red-500"}`} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+    </div>
+  );
+}
