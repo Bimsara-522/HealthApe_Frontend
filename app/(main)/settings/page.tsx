@@ -208,7 +208,71 @@ export default function SettingsPage() {
         </div>
       )}
 
-      
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+        <p className="mt-1 text-sm text-slate-400">Manage your account preferences and security.</p>
+      </div>
+
+      {/* ── Profile Section ── */}
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+        <SectionHeader
+          icon={UserCircleIcon}
+          title="Profile"
+          description="Update your personal information"
+        />
+
+        {/* Avatar */}
+        <div className="mb-6 flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-indigo-200 text-xl font-bold text-blue-700 shadow-sm">
+                {firstName.charAt(0)}{lastName.charAt(0)}
+            </div>
+            <div>
+                <p className="text-sm font-semibold text-slate-800">{firstName} {lastName}</p>
+                <p className="text-xs text-slate-400">Your initials are shown as your avatar.</p>
+            </div>
+        </div>
+
+        {/* Fields */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <InputField
+            label="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="e.g. Sdru"
+          />
+          <InputField
+            label="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="e.g. Wije"
+          />
+          <div className="sm:col-span-2">
+            <InputField
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. sdru@example.com"
+            />
+          </div>
+          <InputField
+            label="Phone Number"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="e.g. +1 (555) 000-0000"
+          />
+          <InputField
+            label="Date of Birth"
+            type="date"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+            placeholder=""
+          />
+        </div>
+
+       
     </div>
   );
 }
