@@ -272,7 +272,145 @@ export default function SettingsPage() {
           />
         </div>
 
-       
+        {/* Save Button */}
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSaveProfile}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-[0.98]"
+          >
+            {profileSaved ? (
+              <>
+                <CheckSolid className="h-4 w-4" />
+                Saved!
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        </div>
+      </section>
+
+      {/* ── Security Section ── */}
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+        <SectionHeader
+          icon={LockClosedIcon}
+          title="Security & Authentication"
+          description="Keep your account safe"
+        />
+
+        <div className="grid grid-cols-1 gap-4">
+          <InputField
+            label="Current Password"
+            type={showCurrent ? "text" : "password"}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Enter current password"
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                {showCurrent ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
+            }
+          />
+          <InputField
+            label="New Password"
+            type={showNew ? "text" : "password"}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Enter new password"
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                {showNew ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
+            }
+          />
+          <InputField
+            label="Confirm New Password"
+            type={showConfirm ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repeat new password"
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                {showConfirm ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+              </button>
+            }
+          />
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-[0.98]"
+          >
+            Update Password
+          </button>
+        </div>
+      </section>
+
+      {/* ── Notifications Section ── */}
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+        <SectionHeader
+          icon={BellIcon}
+          title="Notification Settings"
+          description="Control how we reach you"
+        />
+
+        <div className="space-y-4">
+          {/* Medication Reminders */}
+          <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Medication Reminders</p>
+              <p className="text-xs text-slate-400">Push notifications for daily meds.</p>
+            </div>
+            <Toggle
+              enabled={medReminders}
+              onChange={() => setMedReminders(!medReminders)}
+            />
+          </div>
+
+          {/* Appointment Alerts */}
+          <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Appointment Alerts</p>
+              <p className="text-xs text-slate-400">Email reminders for upcoming appointments.</p>
+            </div>
+            <Toggle
+              enabled={appointmentAlerts}
+              onChange={() => setAppointmentAlerts(!appointmentAlerts)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSaveNotifications}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-[0.98]"
+          >
+            Save Preferences
+          </button>
+        </div>
+      </section>
+
+      <style jsx>{`
+        @keyframes toastShrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 }
