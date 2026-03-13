@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "@/lib/api/api";
 
 export default function VerifyEmailPage() {
@@ -16,6 +16,11 @@ export default function VerifyEmailPage() {
   const [resending, setResending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [pageLoading, setPageLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => setPageLoading(false), 300);
+  }, []);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +60,13 @@ export default function VerifyEmailPage() {
     }
   };
 
+  if (pageLoading) {
+  return (
+    <main className="min-h-screen flex items-center justify-center">
+      <p className="text-gray-500 text-sm">Loading verification page...</p>
+    </main>
+  );
+}
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg border border-gray-200">

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import api from "@/lib/api/api";
+import loading from "@/app/(main)/appointments/loading";
+import axios from "axios";
 
 type signUpForm = {
     fullName: string;
@@ -20,22 +22,27 @@ export default function RegisterPage() {
     const [showSuccess, setShowSuccess] = useState(false);
     const [message, setMessage] = useState('');
     const router = useRouter();
+    const [loading, setLoading] = useState(false);
     const handleSignUp = async (data: signUpForm) => {
     try {
+        setLoading(true);
+
         const res = await api.post('/auth/signup', data);
 
         setMessage(res.data?.message || 'Account created. Please verify your email.');
         setShowSuccess(true);
 
-        setTimeout(() => {
         router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
-        }, 1500);
-    } catch (error: any) {
-        setErrorMessage(
-        error.response?.data?.message ||
-        'Registration failed. Please try again.'
-        );
+
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+        setErrorMessage(error.response?.data?.message ?? 'Registration failed.');
+        } else {
+        setErrorMessage('Unexpected error.');
+        }
         setShowError(true);
+    } finally {
+        setLoading(false);
     }
     };
 
@@ -99,9 +106,12 @@ export default function RegisterPage() {
                             />
                         </div>
 
-                        {/* Button */}
-                        <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-full font-medium shadow-md hover:bg-blue-600 cursor-pointer">
-                        Sign Up
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-500 text-white py-2 rounded-full font-medium shadow-md hover:bg-blue-600 disabled:opacity-60"
+                            >
+                            {loading ? "Creating account..." : "Sign Up"}
                         </button>
 
                         <p className="text-center text-sm text-blue-600 mt-4">

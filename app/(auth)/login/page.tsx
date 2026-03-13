@@ -6,6 +6,7 @@ import api from "@/lib/api/api";
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from '@/context/AuthContext';
+import axios from "axios";
  
 type signInForm = {
     email: string;
@@ -28,8 +29,12 @@ export default function LoginPage() {
             setMessage(response.data.message || 'Login successful! Redirecting...');
             setShowSuccess(true);
             setTimeout(() => router.replace('/dashboard'), 1500);
-        }catch(error: unknown){
-            setErrorMessage((error as any)?.response?.data?.message || 'Login failed. Please check your credentials and try again.');
+        }catch(error: unknown) {
+        if (axios.isAxiosError(error)) {
+        setErrorMessage(error.response?.data?.message ?? 'Login failed. Please check your credentials and try again.');
+        } else {
+        setErrorMessage('Unexpected error.');
+        }
             setShowError(true);
         // const loginSuccess = true;
         // if (loginSuccess) {
