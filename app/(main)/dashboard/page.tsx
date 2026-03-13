@@ -14,29 +14,10 @@ import { MedicationsWidget } from '@/components/dashboard/medicationswidget';
 
 // Import types
 import { useNextAppointment, useUpcomingCount } from '@/hooks/useAppointment';
-import type { Medication } from '@/components/dashboard/medicationswidget';
 import { useAuth } from '@/context/AuthContext';
 import { useRecentRecords } from '@/hooks/useMedicalRecords';
+import { useDashboardMedications } from '@/hooks/useMedications';
 import { useRouter } from 'next/navigation';
-
-
-
-const medications: Medication[] = [
-  {
-    id: '1',
-    name: 'Amoxicillin',
-    dosage: '500g',
-    schedule: 'Morning',
-    taken: true,   //Toggle is on (green)
-  },
-  {
-    id: '2',
-    name: 'Vitamin B',
-    dosage: 'Evening',
-    schedule: 'Evening',
-    taken: false,  //Toggle is OFF (gray)
-  },
-];
 
 
 
@@ -47,6 +28,8 @@ export default function DashboardPage() {
   const { records: recentRecords, loading: recordsLoading } = useRecentRecords();
   const { appointment: nextAppointment, loading: appointmentLoading } = useNextAppointment();
   const { count: upcomingCount } = useUpcomingCount();
+  const { medications, loading: medsLoading } = useDashboardMedications();
+
   // const router = useRouter();
 
   // useEffect(() => {
@@ -75,7 +58,7 @@ export default function DashboardPage() {
         {/* Right Column - Upcoming & Medications */}
         <div className="space-y-6">
           <UpcomingAppointment appointment={nextAppointment} loading={appointmentLoading} />
-          <MedicationsWidget medications={medications} />
+          <MedicationsWidget medications={medications} loading={medsLoading} />
         </div>
         
       </div>
