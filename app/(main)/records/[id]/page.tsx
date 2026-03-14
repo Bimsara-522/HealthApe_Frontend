@@ -241,7 +241,16 @@ export default function RecordDetailPage() {
                   </span>
                 )}
                 {m.referenceRange && (
-                  <span className="ml-2 text-xs text-gray-400">ref: {m.referenceRange}</span>
+                  <span className="ml-2 text-xs text-gray-400">
+                    ref: {
+                      typeof m.referenceRange === 'object'
+                        ? m.referenceRange.text
+                          ?? (m.referenceRange.low != null && m.referenceRange.high != null
+                              ? '${m.referenceRange.low} – ${m.referenceRange.high}'
+                              : null)
+                        : m.referenceRange
+                    }
+                  </span>
                 )}
                 {m.date && (
                   <span className="ml-2 text-xs text-gray-400">{m.date}</span>
