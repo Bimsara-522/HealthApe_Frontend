@@ -18,8 +18,6 @@ const DUMMY_USER = {
   firstName: "Sdru",
   lastName: "Wije",
   email: "sdru.wije@example.com",
-  phone: "+1 (555) 012-3456",
-  dob: "1990-04-15",
   initials: "SW",
 };
 
@@ -34,7 +32,7 @@ function SectionHeader({
   description: string;
 }) {
   return (
-    <div className="mb-6 flex items-center gap-3">
+    <div className="mb-8 flex items-center gap-3">
       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100">
         <Icon className="h-5 w-5 text-blue-700" />
       </div>
@@ -119,8 +117,6 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState(DUMMY_USER.firstName);
   const [lastName, setLastName] = useState(DUMMY_USER.lastName);
   const [email, setEmail] = useState(DUMMY_USER.email);
-  const [phone, setPhone] = useState(DUMMY_USER.phone);
-  const [dob, setDob] = useState(DUMMY_USER.dob);
   const [profileSaved, setProfileSaved] = useState(false);
 
   // Password state
@@ -134,6 +130,7 @@ export default function SettingsPage() {
   // Notification state
   const [medReminders, setMedReminders] = useState(true);
   const [appointmentAlerts, setAppointmentAlerts] = useState(false);
+  const [recordConfirm, setRecordConfirm] = useState(true);
 
   // Toast
   const [toast, setToast] = useState<null | {
@@ -256,20 +253,7 @@ export default function SettingsPage() {
               placeholder="e.g. sdru@example.com"
             />
           </div>
-          <InputField
-            label="Phone Number"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="e.g. +1 (555) 000-0000"
-          />
-          <InputField
-            label="Date of Birth"
-            type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            placeholder=""
-          />
+          
         </div>
 
         {/* Save Button */}
@@ -368,7 +352,7 @@ export default function SettingsPage() {
           description="Control how we reach you"
         />
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Medication Reminders */}
           <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5">
             <div>
@@ -393,6 +377,18 @@ export default function SettingsPage() {
             />
           </div>
         </div>
+
+        {/* New Record Confirmation */}
+        <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5">
+             <div>
+                <p className="text-sm font-semibold text-slate-800">Record Save Confirmation</p>
+                <p className="text-xs text-slate-400">Notify me when a medical record is successfully saved.</p>
+            </div>
+            <Toggle
+              enabled={recordConfirm}
+              onChange={() => setRecordConfirm(!recordConfirm)}
+            />
+          </div>
 
         <div className="mt-6 flex justify-end">
           <button
