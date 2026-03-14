@@ -10,6 +10,6 @@ export function useAppointment(id: string) {
     queryKey: appointmentKeys.detail(id),
     queryFn: () => getAppointmentById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }

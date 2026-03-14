@@ -18,6 +18,7 @@ export function useNotifications() {
     data: notifications = [],
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['notifications'],
     queryFn: getNotifications,
@@ -59,7 +60,7 @@ export function useNotifications() {
     unreadCount,
     isLoading,
     error,
-    
+    refetch,
     // Wrapper functions used by UI components
     // These trigger the corresponding mutations
     markAsRead: (id: string) => markOneMutation.mutate(id),
