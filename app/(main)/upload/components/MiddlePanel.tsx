@@ -152,7 +152,7 @@ export default function MiddlePanel({
   const [saveSuccess, setSaveSuccess] = useState(false);
   // Prescription confirmation modal
   const [showMedConfirm, setShowMedConfirm] = useState(false);
-  const [pendingSave, setPendingSave] = useState(false);
+  
 
   const [toast, setToast] = useState<null | {
     type: "success" | "error" | "loading";
@@ -431,10 +431,7 @@ export default function MiddlePanel({
         sessionStorage.setItem('newMedicationAdded', 'true');
       }
       setTimeout(() => setToast(null), 10000);
-        title: "Saved successfully",
-        message: "Your medical record was added to Records.",
-      });
-      setTimeout(() => setToast(null), 4000);
+        
 
       setTimeout(() => {
         resetForm();
@@ -611,18 +608,25 @@ export default function MiddlePanel({
               <button
                 key={t.category}
                 type="button"
+                // Disable other categories when navigating from "Add Med" button
+                disabled={lockedToCategory && !isSelected}
                 onClick={() => {
-                  setSelectedCategory(t.category);
-                  if (uploadedFile) {
-                    setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
-                  }
-                }}
-                className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200 ${
-                  isSelected
-                    ? `border-transparent ${t.softBg} ring-2 ${t.ring} shadow-[0_12px_25px_rgba(15,23,42,0.06)]`
-                    : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                // Prevent switching category when locked (coming from Add Med)
+                if (lockedToCategory && !isSelected) return;
+                setSelectedCategory(t.category);
+                if (uploadedFile) {
+                  setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
+                }
+              }}
+              className={`group relative overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200 ${
+               // Grey out non-prescription cards when locked to a category
+               lockedToCategory && !isSelected
+                ? 'opacity-40 cursor-not-allowed border-slate-200 bg-slate-50'
+                : isSelected
+                ? `border-transparent ${t.softBg} ring-2 ${t.ring} shadow-[0_12px_25px_rgba(15,23,42,0.06)]`
+                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                 }`}
-              >
+            >
                 <div className="flex items-start justify-between gap-2">
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-2xl transition ${
@@ -633,39 +637,11 @@ export default function MiddlePanel({
                   </div>
 
                   {isSelected && <CheckSolid className="h-4 w-4 text-blue-600" />}
-               key={t.category}
-               type="button"
-               // Disable other categories when navigating from "Add Med" button
-               disabled={lockedToCategory && !isSelected}
-               onClick={() => {
-                 // Prevent switching category when locked (coming from Add Med)
-                 if (lockedToCategory && !isSelected) return;
-                 setSelectedCategory(t.category);
-                 if (uploadedFile) {
-                  setUploadedFile((prev) => (prev ? { ...prev, category: t.category } : null));
-                }
-              }}
-              className={`group relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-center transition-all duration-150 ${
-                // Grey out non-prescription cards when locked to a category
-                lockedToCategory && !isSelected
-                ? 'border-slate-200 bg-slate-50 opacity-40 cursor-not-allowed'
-                : isSelected
-                ? `border-blue-500 ${t.bg} ring-2 ${t.ring} ring-offset-1`
-                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-                <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-                    isSelected ? t.bg : "bg-slate-100 group-hover:bg-slate-200"
-                  } transition`}
-                >
-                  <Icon className={`h-5 w-5 ${isSelected ? t.color : "text-slate-500"}`} />
-                </div>
-
-                <div className="mt-3">
-                  <p className={`text-xs font-semibold ${isSelected ? t.color : "text-slate-700"}`}>{t.category}</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{t.description}</p>
-                </div>
+                 </div>
+                   <div className="mt-3">
+                    <p className={`text-xs font-semibold ${isSelected ? t.color : "text-slate-700"}`}>{t.category}</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-slate-400">{t.description}</p>
+                    </div>
               </button>
             );
           })}
