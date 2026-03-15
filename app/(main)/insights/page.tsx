@@ -9,6 +9,7 @@ import type { DataQualityIssue } from '@/components/insights/types'
 import api from '@/lib/api/client'
 import { useRouter } from 'next/navigation'
 import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
+import MetricDecisionsCard from '@/components/insights/MergedMetricsCard'
 
 type InsightsResponse = {
   patientName: string | null
@@ -23,6 +24,16 @@ type MetricMerge = {
   canonicalName: string
 }
 
+type MetricMergeItem = {
+  rawName: string
+  canonicalName: string
+}
+
+type IgnoredMetricSuggestion = {
+  metricA: string
+  metricB: string
+}
+
 export default function InsightsPage() {
   const [data, setData] = useState<InsightsResponse | null>(null)
   const [qualityIssues, setQualityIssues] = useState<DataQualityIssue[]>([])
@@ -30,6 +41,7 @@ export default function InsightsPage() {
   const [err, setErr] = useState<string | null>(null)
   const [qualityLoading, setQualityLoading] = useState(false)
   const [merges, setMerges] = useState<MetricMerge[]>([])
+  const [ignoredSuggestions, setIgnoredSuggestions] = useState<IgnoredMetricSuggestion[]>([])
   const router = useRouter()
 
   const loadInsights = async () => {
@@ -42,6 +54,11 @@ export default function InsightsPage() {
     setMerges(res.data ?? [])
   }
 
+const loadIgnoredSuggestions = async () => {
+  const res = await api.get<IgnoredMetricSuggestion[]>('/insights/ignored-metric-suggestions')
+  setIgnoredSuggestions(res.data ?? [])
+}
+
   const handleUndoMerge = async (rawName: string) => {
     await api.post('/insights/undo-metric-merge', { rawName })
 
@@ -49,6 +66,7 @@ export default function InsightsPage() {
     await loadQualityIssues()
     await loadMerges()
   }
+  
 
   const loadQualityIssues = async () => {
     setQualityLoading(true)
@@ -60,12 +78,26 @@ export default function InsightsPage() {
     }
   }
 
+  const handleUndoKeepSeparate = async (metricA: string, metricB: string) => {
+  try {
+    await api.post('/insights/undo-ignored-metric-suggestion', {
+      metricA,
+      metricB,
+    })
+
+    await loadQualityIssues()
+    await loadIgnoredSuggestions()
+  } catch (e) {
+    console.error('Failed to undo keep-separate decision', e)
+  }
+}
+
   useEffect(() => {
     ;(async () => {
       try {
         setLoading(true)
         setErr(null)
-        await Promise.all([ loadInsights(), loadQualityIssues(), loadMerges()])
+        await Promise.all([ loadInsights(), loadQualityIssues(), loadMerges(), loadIgnoredSuggestions() ])
       } catch (e: any) {
         setErr(e?.response?.data?.message || e?.message || 'Failed to load insights')
       } finally {
@@ -178,9 +210,11 @@ export default function InsightsPage() {
               onSkip={handleSkipMetric}
             />
 
-      <MergedMetricsCard
+      <MetricDecisionsCard
         merges={merges}
-        onUndo={handleUndoMerge}
+        ignored={ignoredSuggestions}
+        onUndoMerge={handleUndoMerge}
+        onUndoKeepSeparate={handleUndoKeepSeparate}
       />
 
     </div>
@@ -233,4 +267,5 @@ export default function InsightsPage() {
     //   </div>
     // </div>
   )
+  
 }
