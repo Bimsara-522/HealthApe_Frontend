@@ -8,8 +8,8 @@ import DataQualityCard from '@/components/insights/DataQualityCard'
 import type { DataQualityIssue } from '@/components/insights/types'
 import api from '@/lib/api/client'
 import { useRouter } from 'next/navigation'
-import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
-import MetricDecisionsCard from '@/components/insights/MergedMetricsCard'
+// import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
+import MetricDecisionsCard from '@/components/insights/MergedDecisionsCard'
 
 type InsightsResponse = {
   patientName: string | null
@@ -17,6 +17,7 @@ type InsightsResponse = {
   labs: any[]
   milestones: any[]
   attentionItems: any[]
+  trackedMetricCount: number
 }
 
 type MetricMerge = {
@@ -166,6 +167,8 @@ const loadIgnoredSuggestions = async () => {
     latestValueText: l.latestValueText ?? '',
     status: l.status ?? 'Unknown',
     facility: undefined,
+    isTracked: Boolean(l.isTracked),
+    sourceReports: l.sourceReports ?? [],
     series: l.series ?? [],
   }))
 
@@ -176,6 +179,12 @@ const loadIgnoredSuggestions = async () => {
     detail: m.detail,
     tag: m.tag,
   }))
+
+  const sortedLabs = [...labs].sort((a, b) => {
+  if (a.isTracked && !b.isTracked) return -1
+  if (!a.isTracked && b.isTracked) return 1
+  return 0
+})
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
@@ -189,9 +198,32 @@ const loadIgnoredSuggestions = async () => {
     <div className="lg:col-span-2 space-y-6">
 
       <LabTrendsCard
-        labs={labs}
-        // onViewReport={handleViewReport}
-        // onTrackTest={handleTrackTest}
+        labs={sortedLabs}
+        onTrackTest={async (labKey) => {
+          const selectedLab = sortedLabs.find((lab) => lab.key === labKey)
+          if (!selectedLab) return
+
+          try {
+            if (selectedLab.isTracked) {
+              await api.post('/insights/untrack-metric', {
+                metricKey: selectedLab.key,
+              })
+            } else {
+              await api.post('/insights/track-metric', {
+                metricKey: selectedLab.key,
+                metricName: selectedLab.displayName,
+              })
+            }
+
+            await loadInsights()
+          } catch (e: any) {
+            alert(
+              e?.response?.data?.message ||
+                e?.message ||
+                'Failed to update tracked test'
+            )
+          }
+        }}
       />
 
       <MilestoneTimelineCard
