@@ -35,7 +35,7 @@ export function PastVisitsSidebar({ visits }: Props) {
 
                       {/* Content (pushed right so it never overlaps the node) */}
                       <p className="font-semibold text-gray-900 leading-tight">
-                        {visit.doctor.name}
+                        {visit.doctor?.name}
                       </p>
 
                       <p className="text-sm text-gray-500">

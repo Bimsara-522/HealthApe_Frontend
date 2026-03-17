@@ -6,6 +6,7 @@ export default function AppointmentsLayout({
   // This layout wraps:
   // /appointments
   // /appointments/new
+  // /appointments/all
   // /appointments/[id]
   // /appointments/[id]/edit
   return <>{children}</>
