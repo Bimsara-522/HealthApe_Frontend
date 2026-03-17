@@ -19,6 +19,7 @@ import {
   getNotificationSettings,
   updateNotificationSettings,
   type UpdateProfileDto,
+  type EditableProfile,
   type ChangePasswordDto,
   type NotificationSettingsDto,
 } from '@/app/(main)/settings/lib/api/settings';
@@ -56,6 +57,7 @@ function InputField({
   onChange,
   placeholder,
   disabled = false,
+  readOnly = false,
   rightElement,
   autoComplete,
 }: {
@@ -65,6 +67,7 @@ function InputField({
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   disabled?: boolean;
+  readOnly?: boolean;
   rightElement?: React.ReactNode;
   autoComplete?: string;
 }) {
@@ -80,6 +83,7 @@ function InputField({
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
+          readOnly={readOnly}
           autoComplete={autoComplete}
           className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 transition placeholder:text-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400"
         />
@@ -129,7 +133,8 @@ export default function SettingsPage() {
   // Separate loading state for notification saving
   // This prevents the whole page from freezing when only notifications are saving
   const [savingNotifications, setSavingNotifications] = useState(false);
-  const [initialProfile, setInitialProfile] = useState<UpdateProfileDto | null>(null);
+  // const [initialProfile, setInitialProfile] = useState<UpdateProfileDto | null>(null);
+  const [initialProfile, setInitialProfile] = useState<EditableProfile | null>(null);
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -142,7 +147,7 @@ export default function SettingsPage() {
   // Notification state
   const [medReminders, setMedReminders] = useState(true);
   const [appointmentAlerts, setAppointmentAlerts] = useState(false);
-  const [recordConfirm, setRecordConfirm] = useState(true);
+
   // Snapshot of notification values from backend when page loads
   // Used to detect if the user has changed anything before enabling "Save Preferences"
   const [initialNotifications, setInitialNotifications] = useState<NotificationSettingsDto | null>(null);
@@ -172,7 +177,7 @@ export default function SettingsPage() {
           getNotificationSettings(),
         ]);
 
-        const loadedProfile: UpdateProfileDto = {
+        const loadedProfile = {
           firstName: profile.firstName,
           lastName: profile.lastName,
           email: profile.email,
@@ -181,17 +186,18 @@ export default function SettingsPage() {
         setFirstName(loadedProfile.firstName);
         setLastName(loadedProfile.lastName);
         setEmail(loadedProfile.email);
-        setInitialProfile(loadedProfile);
+        setInitialProfile({
+          firstName: loadedProfile.firstName,
+          lastName: loadedProfile.lastName,
+        });
 
         const loadedNotifications: NotificationSettingsDto = {
           medicationReminders: notifications.medicationReminders,
           appointmentAlerts: notifications.appointmentAlerts,
-          recordConfirmation: notifications.recordConfirmation,
         };
 
         setMedReminders(loadedNotifications.medicationReminders);
         setAppointmentAlerts(loadedNotifications.appointmentAlerts);
-        setRecordConfirm(loadedNotifications.recordConfirmation);
         // Save the backend values as the "initial state"
         // This lets us detect if the user changed any toggles later
         setInitialNotifications(loadedNotifications);
@@ -210,8 +216,8 @@ export default function SettingsPage() {
   }, []);
 
   const handleSaveProfile = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      showToast("error", "Missing fields", "First name, last name and email are required.");
+    if (!firstName.trim() || !lastName.trim()) {
+      showToast("error", "Missing fields", "First name, last name are required.");
       return;
     }
 
@@ -219,23 +225,20 @@ export default function SettingsPage() {
       const payload: UpdateProfileDto = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: email.trim(),
+        // email: email.trim(),
       };
 
       const response = await updateProfile(payload);
 
       // update local state from backend response if returned
       if (response?.profile) {
-        const updatedProfile: UpdateProfileDto = {
+        setFirstName(response.profile.firstName);
+        setLastName(response.profile.lastName);
+        setEmail(response.profile.email);
+        setInitialProfile({
           firstName: response.profile.firstName,
           lastName: response.profile.lastName,
-          email: response.profile.email,
-        };
-
-        setFirstName(updatedProfile.firstName);
-        setLastName(updatedProfile.lastName);
-        setEmail(updatedProfile.email);
-        setInitialProfile(updatedProfile);
+        });
       } else {
         setInitialProfile(payload);
       }
@@ -261,7 +264,6 @@ export default function SettingsPage() {
       const payload: NotificationSettingsDto = {
         medicationReminders: medReminders,
         appointmentAlerts,
-        recordConfirmation: recordConfirm,
       };
 
       await updateNotificationSettings(payload);
@@ -279,8 +281,6 @@ export default function SettingsPage() {
       setSavingNotifications(false);
     }
   };
-
-  // const todayDate = new Date().toISOString().slice(0, 10);
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -335,8 +335,7 @@ export default function SettingsPage() {
     initialNotifications !== null &&
     (
       medReminders !== initialNotifications.medicationReminders ||
-      appointmentAlerts !== initialNotifications.appointmentAlerts ||
-      recordConfirm !== initialNotifications.recordConfirmation
+      appointmentAlerts !== initialNotifications.appointmentAlerts
     );
 
   // Profile button only enables when at least one field differs from the loaded values
@@ -344,8 +343,7 @@ export default function SettingsPage() {
     initialProfile !== null &&
     (
       firstName.trim() !== initialProfile.firstName ||
-      lastName.trim() !== initialProfile.lastName ||
-      email.trim() !== initialProfile.email
+      lastName.trim() !== initialProfile.lastName
     );
 
   // Password button only enables when all three password fields have values
@@ -358,7 +356,7 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6 pb-10">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
           <p className="mt-1 text-sm text-slate-400">Loading your settings...</p>
         </div>
       </div>
@@ -366,7 +364,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
 
       {/* Toast */}
       {toast && (
@@ -453,8 +451,8 @@ export default function SettingsPage() {
               label="Email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. sdru@example.com"
+              disabled={true}
+              // onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
@@ -588,7 +586,7 @@ export default function SettingsPage() {
           </div>
 
           {/* New Record Confirmation */}
-          <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5">
+          {/* <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5">
             <div>
               <p className="text-sm font-semibold text-slate-800">Record Save Confirmation</p>
               <p className="text-xs text-slate-400">Notify me when a medical record is successfully saved.</p>
@@ -597,7 +595,7 @@ export default function SettingsPage() {
               enabled={recordConfirm}
               onChange={() => setRecordConfirm(!recordConfirm)}
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="mt-6 flex justify-end">

@@ -7,10 +7,14 @@ export type ProfileResponse = {
   initials: string;
 };
 
+export type EditableProfile = {
+  firstName: string;
+  lastName: string;
+};
+
 export type UpdateProfileDto = {
   firstName: string;
   lastName: string;
-  email: string;
 };
 
 export type ChangePasswordDto = {
@@ -22,7 +26,6 @@ export type ChangePasswordDto = {
 export type NotificationSettingsDto = {
   medicationReminders: boolean;
   appointmentAlerts: boolean;
-  recordConfirmation: boolean;
 };
 
 export async function getProfile(): Promise<ProfileResponse> {
