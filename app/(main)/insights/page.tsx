@@ -8,7 +8,8 @@ import DataQualityCard from '@/components/insights/DataQualityCard'
 import type { DataQualityIssue } from '@/components/insights/types'
 import api from '@/lib/api/client'
 import { useRouter } from 'next/navigation'
-import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
+// import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
+import MetricDecisionsCard from '@/components/insights/MergedDecisionsCard'
 
 type InsightsResponse = {
   patientName: string | null
@@ -16,11 +17,22 @@ type InsightsResponse = {
   labs: any[]
   milestones: any[]
   attentionItems: any[]
+  trackedMetricCount: number
 }
 
 type MetricMerge = {
   rawName: string
   canonicalName: string
+}
+
+type MetricMergeItem = {
+  rawName: string
+  canonicalName: string
+}
+
+type IgnoredMetricSuggestion = {
+  metricA: string
+  metricB: string
 }
 
 export default function InsightsPage() {
@@ -30,6 +42,7 @@ export default function InsightsPage() {
   const [err, setErr] = useState<string | null>(null)
   const [qualityLoading, setQualityLoading] = useState(false)
   const [merges, setMerges] = useState<MetricMerge[]>([])
+  const [ignoredSuggestions, setIgnoredSuggestions] = useState<IgnoredMetricSuggestion[]>([])
   const router = useRouter()
 
   const loadInsights = async () => {
@@ -42,6 +55,11 @@ export default function InsightsPage() {
     setMerges(res.data ?? [])
   }
 
+const loadIgnoredSuggestions = async () => {
+  const res = await api.get<IgnoredMetricSuggestion[]>('/insights/ignored-metric-suggestions')
+  setIgnoredSuggestions(res.data ?? [])
+}
+
   const handleUndoMerge = async (rawName: string) => {
     await api.post('/insights/undo-metric-merge', { rawName })
 
@@ -49,6 +67,7 @@ export default function InsightsPage() {
     await loadQualityIssues()
     await loadMerges()
   }
+  
 
   const loadQualityIssues = async () => {
     setQualityLoading(true)
@@ -60,12 +79,26 @@ export default function InsightsPage() {
     }
   }
 
+  const handleUndoKeepSeparate = async (metricA: string, metricB: string) => {
+  try {
+    await api.post('/insights/undo-ignored-metric-suggestion', {
+      metricA,
+      metricB,
+    })
+
+    await loadQualityIssues()
+    await loadIgnoredSuggestions()
+  } catch (e) {
+    console.error('Failed to undo keep-separate decision', e)
+  }
+}
+
   useEffect(() => {
     ;(async () => {
       try {
         setLoading(true)
         setErr(null)
-        await Promise.all([ loadInsights(), loadQualityIssues(), loadMerges()])
+        await Promise.all([ loadInsights(), loadQualityIssues(), loadMerges(), loadIgnoredSuggestions() ])
       } catch (e: any) {
         setErr(e?.response?.data?.message || e?.message || 'Failed to load insights')
       } finally {
@@ -134,6 +167,8 @@ export default function InsightsPage() {
     latestValueText: l.latestValueText ?? '',
     status: l.status ?? 'Unknown',
     facility: undefined,
+    isTracked: Boolean(l.isTracked),
+    sourceReports: l.sourceReports ?? [],
     series: l.series ?? [],
   }))
 
@@ -144,6 +179,12 @@ export default function InsightsPage() {
     detail: m.detail,
     tag: m.tag,
   }))
+
+  const sortedLabs = [...labs].sort((a, b) => {
+  if (a.isTracked && !b.isTracked) return -1
+  if (!a.isTracked && b.isTracked) return 1
+  return 0
+})
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
@@ -157,9 +198,32 @@ export default function InsightsPage() {
     <div className="lg:col-span-2 space-y-6">
 
       <LabTrendsCard
-        labs={labs}
-        // onViewReport={handleViewReport}
-        // onTrackTest={handleTrackTest}
+        labs={sortedLabs}
+        onTrackTest={async (labKey) => {
+          const selectedLab = sortedLabs.find((lab) => lab.key === labKey)
+          if (!selectedLab) return
+
+          try {
+            if (selectedLab.isTracked) {
+              await api.post('/insights/untrack-metric', {
+                metricKey: selectedLab.key,
+              })
+            } else {
+              await api.post('/insights/track-metric', {
+                metricKey: selectedLab.key,
+                metricName: selectedLab.displayName,
+              })
+            }
+
+            await loadInsights()
+          } catch (e: any) {
+            alert(
+              e?.response?.data?.message ||
+                e?.message ||
+                'Failed to update tracked test'
+            )
+          }
+        }}
       />
 
       <MilestoneTimelineCard
@@ -178,9 +242,11 @@ export default function InsightsPage() {
               onSkip={handleSkipMetric}
             />
 
-      <MergedMetricsCard
+      <MetricDecisionsCard
         merges={merges}
-        onUndo={handleUndoMerge}
+        ignored={ignoredSuggestions}
+        onUndoMerge={handleUndoMerge}
+        onUndoKeepSeparate={handleUndoKeepSeparate}
       />
 
     </div>
@@ -233,4 +299,5 @@ export default function InsightsPage() {
     //   </div>
     // </div>
   )
+  
 }
