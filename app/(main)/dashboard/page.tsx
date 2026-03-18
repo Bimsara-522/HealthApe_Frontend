@@ -8,12 +8,14 @@ import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
 import { RecentRecords } from '@/components/dashboard/recentrecords';
 import { UpcomingAppointment } from '@/components/dashboard/upcomingappointments';
 import { MedicationsWidget } from '@/components/dashboard/medicationswidget';
+import { TrackedMetricCards } from '@/components/dashboard/trackedmetriccards';
 
 // Import types
 import { useNextAppointment, useUpcomingCount } from 'app/(main)/appointments/hooks/useAppointment';
 import { useAuth } from '@/context/AuthContext';
 import { useRecentRecords } from '@/hooks/useMedicalRecords';
 import { useDashboardMedications } from '@/hooks/useMedications';
+import { useTrackedMetricCards } from '@/hooks/useTrackedMetricCards';
 import { useEffect, useState } from 'react';
 import { getNotificationSettings, NotificationSettingsDto } from '../settings/lib/api/settings';
 
@@ -25,6 +27,7 @@ export default function DashboardPage() {
   const { appointment: nextAppointment, loading: appointmentLoading } = useNextAppointment();
   const { count: upcomingCount } = useUpcomingCount();
   const { medications, loading: medsLoading } = useDashboardMedications();
+  const { cards: trackedCards, loading: trackedLoading } = useTrackedMetricCards();
 
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsDto | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(true);
@@ -63,7 +66,10 @@ export default function DashboardPage() {
       {/* ROW 1: Welcome Banner */}
       <WelcomeBanner userName={user?.name ?? ''} upcomingAppointments={upcomingCount} />
 
-      {/* ROW 2: Main Content Grid */}
+      {/* ROW 2: Tracked Metric Cards — only shown if user is tracking metrics */}
+      <TrackedMetricCards cards={trackedCards} loading={trackedLoading} />  
+
+      {/* ROW 3: Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column - Recent Records (takes 2 columns) */}
