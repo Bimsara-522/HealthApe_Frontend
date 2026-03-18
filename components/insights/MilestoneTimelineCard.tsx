@@ -13,7 +13,7 @@ export default function MilestoneTimelineCard({
 }) {
   return (
     <Card title="Milestone timeline" right={<Badge tone="gray">Noteworthy events</Badge>}>
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
         {milestones.map(m => (
           <div key={m.id} className="flex gap-4">
             <div className="mt-1 h-2.5 w-2.5 rounded-full bg-gray-900" />

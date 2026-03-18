@@ -39,6 +39,8 @@ export function useCreateAppointment() {
       // When creating a new appointment, the cached list becomes outdated
       // So we invalidate the cache. Refetch appointment lists from the server. UI updates
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all() })
+      queryClient.invalidateQueries({ queryKey: ['appointments', 'next'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
 }
@@ -83,6 +85,7 @@ export function useCancelAppointment() {
     onSettled: (_data, _err, id) => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all() })
       queryClient.invalidateQueries({ queryKey: appointmentKeys.detail(id) })
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
 }

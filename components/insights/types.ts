@@ -21,7 +21,22 @@ export type TrackedLab = {
   latestValueText: string
   status: 'Low' | 'Normal' | 'High' | 'Unknown'
   facility?: string
-  series: LabPoint[]
+  isTracked: boolean
+  series: {
+    date: string
+    value: number
+    docId: string
+    docCategory?: string
+    hospital?: string | null
+  }[]
+  sourceReports: {
+    docId: string
+    date: string
+    value: number
+    unit?: string | null
+    docCategory?: string
+    hospital?: string | null
+  }[]
 }
 
 export type Appointment = {
@@ -45,6 +60,11 @@ export type DataQualityIssue = {
   title: string
   detail: string
   actionLabel: string
+  skipLabel?: string
+  rawName?: string
+  compareName?: string
+  suggestedCanonicalName?: string
+  similarity?: number
 }
 
 export type SnapshotData = {

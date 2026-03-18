@@ -1,6 +1,8 @@
 // app/api/ai/validate/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import pdfParse from "pdf-parse";
+
 
 export const runtime = "nodejs";
 
@@ -78,10 +80,18 @@ type Details = {
 type ValidateResult = {
   isMedical: boolean;
   reason: NullableString;
+  documentCategory: UploadCategoryValue | null;
   extractedText: NullableString;
   extractedFields: ExtractedFields | null;
   details: Details | null;
 };
+
+type UploadCategoryValue =
+  | "Prescription"
+  | "Lab Report"
+  | "Image/X-ray"
+  | "Doctor Note"
+  | "Insurance Document";
 
 /* ============================================================
    Basic Helpers
@@ -450,15 +460,32 @@ function dedupeMetrics(items: MetricItem[]): MetricItem[] {
   return result;
 }
 
-function normalizeFinalData(raw: any, category: string): ValidateResult {
+function normalizeFinalData(
+  raw: any,
+  category: UploadCategoryValue | string
+): ValidateResult {
   const isMedical = Boolean(raw?.isMedical);
   const reason = normalizeNullableString(raw?.reason);
   const extractedText = normalizeMultilineString(raw?.extractedText);
+  const aiCategory = normalizeNullableString(raw?.documentCategory) as UploadCategoryValue | null;
 
   if (!isMedical) {
     return {
       isMedical: false,
       reason: reason || "This file does not appear to be a medical document.",
+      documentCategory: aiCategory,
+      extractedText: null,
+      extractedFields: null,
+      details: null,
+    };
+  }
+
+  // Category mismatch check
+  if (category && aiCategory && aiCategory !== category) {
+    return {
+      isMedical: false,
+      reason: `This is a valid medical document, but it belongs to "${aiCategory}", not "${category}". Please select the correct document type and try again.`,
+      documentCategory: aiCategory,
       extractedText: null,
       extractedFields: null,
       details: null,
@@ -510,6 +537,7 @@ function normalizeFinalData(raw: any, category: string): ValidateResult {
   return {
     isMedical: true,
     reason: null,
+    documentCategory: aiCategory,
     extractedText,
     extractedFields,
     details,
@@ -528,6 +556,7 @@ function mockByCategory(category: string, dateFromUser: string) {
       return {
         isMedical: true,
         reason: null,
+        documentCategory: "Prescription",
         extractedText:
           "Prescription\nDoctor: Dr. Amanda Silva\nHospital: Asiri Hospital\nMedication: Paracetamol 500mg - 2 tablets twice daily until 2026-03-05\nDiagnosis: Viral infection",
         extractedFields: {
@@ -560,6 +589,7 @@ function mockByCategory(category: string, dateFromUser: string) {
       return {
         isMedical: true,
         reason: null,
+        documentCategory: "Lab Report",
         extractedText:
           "Lab Report\nFBS 110 mg/dL\nHbA1c 6.2 %\nLab: Asiri Laboratory",
         extractedFields: {
@@ -597,6 +627,7 @@ function mockByCategory(category: string, dateFromUser: string) {
       return {
         isMedical: true,
         reason: null,
+        documentCategory: "Image/X-ray",
         extractedText:
           "Imaging Report\nType: X-ray\nBody Part: Chest\nFindings: No acute abnormality detected\nCenter: Asiri Imaging",
         extractedFields: {
@@ -613,6 +644,7 @@ function mockByCategory(category: string, dateFromUser: string) {
       return {
         isMedical: true,
         reason: null,
+        documentCategory: "Doctor Note",
         extractedText:
           "Doctor Note\nSymptoms: Fever, headache\nDiagnosis: Viral infection\nBP 120/80 mmHg\nDoctor: Dr. Amanda Silva\nClinic: Asiri Hospital",
         extractedFields: {
@@ -652,6 +684,7 @@ function mockByCategory(category: string, dateFromUser: string) {
       return {
         isMedical: true,
         reason: null,
+        documentCategory: "Insurance Document",
         extractedText:
           "Insurance Document\nProvider: Allianz\nPolicy: POL-12345\nClaim: CLM-77889\nCoverage: Inpatient + Outpatient",
         extractedFields: {
@@ -668,6 +701,7 @@ function mockByCategory(category: string, dateFromUser: string) {
       return {
         isMedical: true,
         reason: null,
+        documentCategory: null,
         extractedText: "Medical document (mock).",
         extractedFields: emptyExtractedFields(date),
         details: emptyDetails(),
@@ -676,34 +710,40 @@ function mockByCategory(category: string, dateFromUser: string) {
 }
 
 /* ============================================================
-   PDF TEXT EXTRACTOR (pdfjs-dist)
+   PDF TEXT EXTRACTOR (pdf-parse + retry)
 ============================================================ */
 
-async function extractTextFromPdf(buf: Buffer): Promise<string> {
-  const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/legacy/build/pdf.worker.mjs",
-    import.meta.url
-  ).toString();
+async function extractTextFromPdf(buf: Buffer): Promise<string | null> {
+  const maxAttempts = 3;
 
-  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buf) });
-  const pdf = await loadingTask.promise;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const data = await pdfParse(buf, { max: 3 });
+      const text = (data.text || "").replace(/\s+\n/g, "\n").trim();
 
-  const maxPages = Math.min(pdf.numPages, 3);
-  let fullText = "";
+      if (text) {
+        if (attempt > 1) {
+          console.log(`PDF parse succeeded on attempt ${attempt}`);
+        }
+        return text;
+      }
+    } catch (error) {
+      console.warn(
+        `PDF PARSE ERROR (attempt ${attempt}/${maxAttempts}):`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
 
-  for (let pageNo = 1; pageNo <= maxPages; pageNo++) {
-    const page = await pdf.getPage(pageNo);
-    const content = await page.getTextContent();
-    const strings = (content.items || [])
-      .map((it: any) => (typeof it.str === "string" ? it.str : ""))
-      .filter(Boolean);
-
-    fullText += strings.join(" ") + "\n";
+    if (attempt < maxAttempts) {
+      await sleep(250);
+    }
   }
 
-  return fullText.trim();
+  return null;
 }
 
 /* ============================================================
@@ -738,6 +778,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
           isMedical: false,
           reason: "This file does not appear to be a medical document.",
+          documentCategory: null,
           extractedText: null,
           extractedFields: null,
           details: null,
@@ -782,6 +823,19 @@ PRIMARY TASK
    - Populate structured details for app features
 
 Selected category: "${category}"
+
+CRITICAL CATEGORY RULE:
+- Determine the actual document category from the content.
+- Valid categories: Prescription, Lab Report, Image/X-ray, Doctor Note, Insurance Document.
+- You MUST set documentCategory to the actual category if the file is medical.
+- If medical but does NOT match the selected category above, set:
+    isMedical = false
+    reason = short mismatch message e.g. "This is a Prescription, not a Lab Report."
+    documentCategory = the actual category
+    extractedText = null
+    extractedFields = null
+    details = null
+
 User provided date (optional): "${date}"
 
 --------------------------------------------------
@@ -975,12 +1029,13 @@ STRICT OUTPUT REQUIREMENTS
     if (mime === "application/pdf") {
       const extracted = await extractTextFromPdf(buf);
 
-      if (extracted.length < 50) {
+      if (!extracted || extracted.length < 50) {
         return NextResponse.json({
           isMedical: false,
           reason:
             "This PDF appears to be scanned (no readable text). PDF OCR is not enabled yet. Please upload a JPG/PNG or a text-based PDF.",
-          extractedText: "Scanned PDF detected (no readable text)",
+          documentCategory: null,  
+          extractedText: null,
           extractedFields: null,
           details: null,
         });
@@ -1011,11 +1066,15 @@ STRICT OUTPUT REQUIREMENTS
           schema: {
             type: "object",
             additionalProperties: false,
-            required: ["isMedical", "reason", "extractedText", "extractedFields", "details"],
+            required: ["isMedical", "reason", "documentCategory", "extractedText", "extractedFields", "details"],
             properties: {
               isMedical: { type: "boolean" },
               reason: { type: ["string", "null"] },
               extractedText: { type: ["string", "null"] },
+              documentCategory: {
+                type: ["string", "null"],
+                enum: ["Prescription", "Lab Report", "Image/X-ray", "Doctor Note", "Insurance Document", null],
+              },
 
               extractedFields: {
                 type: ["object", "null"],
