@@ -3,11 +3,8 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
-
 // Import all dashboard components
 import { WelcomeBanner } from '@/components/dashboard/welcomebanner';
-import { HealthMetricsGrid } from '@/components/dashboard/healthmetriccard';
 import { RecentRecords } from '@/components/dashboard/recentrecords';
 import { UpcomingAppointment } from '@/components/dashboard/upcomingappointments';
 import { MedicationsWidget } from '@/components/dashboard/medicationswidget';
@@ -17,9 +14,6 @@ import { useNextAppointment, useUpcomingCount } from '@/hooks/useAppointment';
 import { useAuth } from '@/context/AuthContext';
 import { useRecentRecords } from '@/hooks/useMedicalRecords';
 import { useDashboardMedications } from '@/hooks/useMedications';
-import { useRouter } from 'next/navigation';
-
-
 
 //Dashboard page component
 
