@@ -402,6 +402,9 @@ export default function MiddlePanel({
         JSON.stringify(uploadedFile?.details ?? { medicationItems: [], metrics: [] })
       );
 
+      fd.append("isValidated", String(validated));
+      fd.append("extractedText", uploadedFile?.ocrText ?? "");
+
       // Send tracking decision
       fd.append('trackMedications', String(trackMedications));
       
