@@ -1,6 +1,7 @@
 // AI Assistant page (URL: /ai-assistant)
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import api from '@/lib/api/api';
 
@@ -373,8 +374,15 @@ export default function AiAssistantPage() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-3 p-6 border-b border-gray-200">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-            ♥
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
+            <Image
+              src="/HealthApeLogo.png"
+              alt="HealthApe chat icon"
+              width={48}
+              height={48}
+              className="h-full w-full object-cover"
+              priority
+            />
           </div>
           <div className="flex-1">
             <h2 className="font-semibold text-gray-900">HealthApe Assistant</h2>
