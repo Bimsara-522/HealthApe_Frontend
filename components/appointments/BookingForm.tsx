@@ -16,7 +16,6 @@ const schema = z.object({
   doctorId: z.string().optional(),
   specialty: z.string().optional(),
   hospital: z.string().min(1, 'Enter hospital/clinic name'),
-  // date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date'),
   date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')

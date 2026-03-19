@@ -52,9 +52,6 @@ export default function AppointmentsPage() {
     )
   }
 
-  // const pastVisits = appointments
-  //   .filter(a => new Date(a.date) <= new Date()) // convert the appointment's date string into a Date and keep appointments that are today or earlier
-  //   .slice(0, 5) // take first 5 appointments
     const pastVisits = appointments
     .filter(a => isBeforeToday(a.date))
     .slice(0, 5) // take first 5 appointments
