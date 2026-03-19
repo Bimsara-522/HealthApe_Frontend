@@ -34,7 +34,7 @@ const navigationItems = [
   { name: 'Medical Records', href: '/records', icon: FileText },
   { name: 'Medications', href: '/medications', icon: Pill },
   { name: 'Appointments', href: '/appointments', icon: Calendar },
-  { name: 'AI Assistant', href: '/ai-assistant', icon: MessageSquare },
+  { name: 'Help Ape', href: '/ai-assistant', icon: MessageSquare },
   { name: 'Insights', href: '/insights', icon: Sparkles },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

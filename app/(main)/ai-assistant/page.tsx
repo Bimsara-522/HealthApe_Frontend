@@ -342,7 +342,7 @@ export default function AiAssistantPage() {
           {sessions.map((session) => (
             <div
               key={session.id}
-              className={`group flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors ${
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors ${
                 activeSessionId === session.id
                   ? 'bg-blue-50 border-blue-200'
                   : 'bg-white border-gray-200 hover:border-gray-300'
@@ -360,7 +360,7 @@ export default function AiAssistantPage() {
                   event.stopPropagation();
                   handleDeleteChat(session.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
+                className="shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                 aria-label="Delete chat"
               >
                 <Trash2 size={14} />
@@ -381,9 +381,9 @@ export default function AiAssistantPage() {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-xs text-green-600 font-medium">Online</span>
-              {typeof welcomeMeta?.vectorCount === 'number' && (
+              {/* {typeof welcomeMeta?.vectorCount === 'number' && (
                 <span className="text-xs text-gray-500">• Indexed chunks: {welcomeMeta.vectorCount}</span>
-              )}
+              )} */}
             </div>
           </div>
         </div>
