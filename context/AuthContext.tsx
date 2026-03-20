@@ -26,15 +26,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ✅ useCallback prevents function from recreating every render
   const fetchUser = async () => {
-  try {
-    const response = await api.get('/users/me');
-    setUser(response.data);
-  } catch {
-    setUser(null);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const response = await api.get('/users/me');
+      setUser(response.data);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUser();
