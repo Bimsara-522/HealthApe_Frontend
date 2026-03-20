@@ -62,10 +62,7 @@ const loadIgnoredSuggestions = async () => {
 
   const handleUndoMerge = async (rawName: string) => {
     await api.post('/insights/undo-metric-merge', { rawName })
-
-    await loadInsights()
-    await loadQualityIssues()
-    await loadMerges()
+    await refreshInsightsState()
   }
   
 
@@ -80,18 +77,26 @@ const loadIgnoredSuggestions = async () => {
   }
 
   const handleUndoKeepSeparate = async (metricA: string, metricB: string) => {
-  try {
-    await api.post('/insights/undo-ignored-metric-suggestion', {
-      metricA,
-      metricB,
-    })
+    try {
+      await api.post('/insights/undo-ignored-metric-suggestion', {
+        metricA,
+        metricB,
+      })
 
-    await loadQualityIssues()
-    await loadIgnoredSuggestions()
-  } catch (e) {
-    console.error('Failed to undo keep-separate decision', e)
+      await refreshInsightsState()
+    } catch (e) {
+      console.error('Failed to undo keep-separate decision', e)
+    }
   }
-}
+
+  const refreshInsightsState = async () => {
+    await Promise.all([
+      loadInsights(),
+      loadQualityIssues(),
+      loadMerges(),
+      loadIgnoredSuggestions(),
+    ])
+  }
 
   useEffect(() => {
     ;(async () => {
@@ -117,10 +122,7 @@ const loadIgnoredSuggestions = async () => {
         canonicalName: issue.suggestedCanonicalName,
       })
 
-      setQualityIssues((prev) => prev.filter((q) => q.id !== issueId))
-
-      await loadInsights()
-      await loadQualityIssues()
+      await refreshInsightsState()
     } catch (e) {
       console.error('Failed to merge metric', e)
     }
@@ -136,8 +138,7 @@ const loadIgnoredSuggestions = async () => {
         metricB: issue.compareName,
       })
 
-      setQualityIssues((prev) => prev.filter((q) => q.id !== issueId))
-      await loadQualityIssues()
+      await refreshInsightsState()
     } catch (e) {
       console.error('Failed to ignore metric suggestion', e)
     }
