@@ -130,7 +130,7 @@ export default function AiAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
-  const [welcomeMeta, setWelcomeMeta] = useState<WelcomeResponse['metadata']>();
+  const [, setWelcomeMeta] = useState<WelcomeResponse['metadata']>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const buildWelcomeMessage = (welcomeMessage?: string): Message => ({
