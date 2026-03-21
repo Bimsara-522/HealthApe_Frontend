@@ -24,6 +24,7 @@ import {
   Settings,       // Settings
   LogOut,         // Log Out
 } from 'lucide-react';
+import { set } from 'zod';
 
 
 //Navigation items for the sidebar menu
@@ -52,22 +53,18 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
   //usePathname() gives us the current URL path
   //We use this to highlight the active menu item
-  const { logout } = useAuth();
   const pathname = usePathname();
   // Pulsing dot state for new medications
   const [newMedication, setNewMedication] = useState(false);
   
   useEffect(() => {
   // Check immediately
-  const flag = sessionStorage.getItem('newMedicationAdded');
-  if (flag === 'true') setNewMedication(true);
-
-  // Also poll every second to catch same-page saves
-  const interval = setInterval(() => {
+  const check = () => {
     const flag = sessionStorage.getItem('newMedicationAdded');
-    if (flag === 'true') setNewMedication(true);
-  }, 1000);
-
+    setNewMedication(flag === 'true');
+  };
+  check();
+  const interval = setInterval(check, 3000); // Check every 3 seconds
   return () => clearInterval(interval);
 }, [pathname]);
   
@@ -75,7 +72,7 @@ export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
     // Clear the flag when user visits medications page
     if (pathname === '/medications') {
       sessionStorage.removeItem('newMedicationAdded');
-      setNewMedication(false);
+      setNewMedication((prev)=>(prev ?false: prev));
     }
   }, [pathname]);
 

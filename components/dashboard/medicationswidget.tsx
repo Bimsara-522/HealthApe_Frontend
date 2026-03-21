@@ -6,7 +6,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { Pill, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { DashboardMedication } from '@/hooks/useMedications';
 
 //Formats "08:00" → "8:00 AM"

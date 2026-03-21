@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search, ChevronDown, Plus, Activity, User,
-  Pill, FileText, ArrowUpDown, Trash2, Loader2,
+  Pill, FileText, ArrowUpDown, Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/UI/button';
@@ -175,15 +175,15 @@ function SortDropdown({
 
 //Record Card
 function RecordCard({
-  record, isFirst, onViewDetails, onDelete,
+  record, isFirst, onViewDetails, onDelete, icon: IconComponent,
 }: {
   record: MedicalRecord;
   isFirst: boolean;
   onViewDetails: (id: string) => void;
   onDelete: (id: string) => void;
+  icon: React.ElementType;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const IconComponent = getRecordIcon(record.category);
 
   return (
     <div className={cn(
@@ -437,6 +437,7 @@ export default function MedicalRecordsPage() {
               isFirst={index === 0}
               onViewDetails={handleViewDetails}
               onDelete={handleDelete}
+              icon={getRecordIcon(record.category)}
             />
           ))
         )}
