@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import api from "@/lib/api/api";
+import api from "@/lib/api/client";
 import axios from "axios";
 
 type SignUpForm = {
