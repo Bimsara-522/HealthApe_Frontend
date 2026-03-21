@@ -1,8 +1,6 @@
-// app/api/ai/validate/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import pdfParse from "pdf-parse";
-
 
 export const runtime = "nodejs";
 
@@ -93,11 +91,77 @@ type UploadCategoryValue =
   | "Doctor Note"
   | "Insurance Document";
 
+type JsonObject = Record<string, unknown>;
+
+type RawMedicationItem = {
+  name?: unknown;
+  strength?: unknown;
+  doseQuantity?: unknown;
+  doseUnit?: unknown;
+  scheduleTimes?: unknown;
+  startDate?: unknown;
+  endDate?: unknown;
+  instructions?: unknown;
+};
+
+type RawReferenceRange = {
+  low?: unknown;
+  high?: unknown;
+  text?: unknown;
+};
+
+type RawMetricItem = {
+  name?: unknown;
+  value?: unknown;
+  unit?: unknown;
+  date?: unknown;
+  dateSource?: unknown;
+  fasting?: unknown;
+  referenceRange?: unknown;
+};
+
+type RawExtractedFields = {
+  date?: unknown;
+  doctorName?: unknown;
+  hospital?: unknown;
+  symptoms?: unknown;
+  diagnosis?: unknown;
+  notes?: unknown;
+  medications?: unknown;
+  dosage?: unknown;
+  frequency?: unknown;
+  testName?: unknown;
+  results?: unknown;
+  imagingType?: unknown;
+  bodyPart?: unknown;
+  findings?: unknown;
+  provider?: unknown;
+  policyNumber?: unknown;
+  claimNumber?: unknown;
+  coverageDetails?: unknown;
+};
+
+type RawValidateResult = {
+  isMedical?: unknown;
+  reason?: unknown;
+  documentCategory?: unknown;
+  extractedText?: unknown;
+  extractedFields?: unknown;
+  details?: {
+    medicationItems?: unknown;
+    metrics?: unknown;
+  } | null;
+};
+
+type ErrorWithMessage = {
+  message?: string;
+};
+
 /* ============================================================
    Basic Helpers
 ============================================================ */
 
-function safeJsonParse(text: string) {
+function safeJsonParse(text: string): unknown {
   try {
     return JSON.parse(text);
   } catch {
@@ -145,6 +209,11 @@ function emptyDetails(): Details {
   };
 }
 
+function asObject(value: unknown): JsonObject | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as JsonObject;
+}
+
 /* ============================================================
    Normalization Helpers
 ============================================================ */
@@ -181,10 +250,8 @@ function normalizeDateString(value: unknown): string | null {
   const s = normalizeNullableString(value);
   if (!s) return null;
 
-  // Accept only YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 
-  // Try Date parsing as fallback, then convert to YYYY-MM-DD
   const d = new Date(s);
   if (!Number.isNaN(d.getTime())) {
     return d.toISOString().slice(0, 10);
@@ -217,7 +284,10 @@ function normalizeScheduleTimes(value: unknown): string[] {
   );
 }
 
-function normalizeMedicationItem(item: any, documentDate: string | null): MedicationItem | null {
+function normalizeMedicationItem(
+  item: RawMedicationItem | null,
+  documentDate: string | null
+): MedicationItem | null {
   const name = normalizeNullableString(item?.name);
   if (!name) return null;
 
@@ -240,8 +310,8 @@ function normalizeMedicationItem(item: any, documentDate: string | null): Medica
   };
 }
 
-function normalizeReferenceRange(value: any): ReferenceRange | null {
-  if (!value || typeof value !== "object") return null;
+function normalizeReferenceRange(value: RawReferenceRange | null): ReferenceRange | null {
+  if (!value) return null;
 
   const low = normalizeNumber(value.low);
   const high = normalizeNumber(value.high);
@@ -262,7 +332,10 @@ function inferFastingFromMetricName(name: string | null): boolean | null {
   return null;
 }
 
-function normalizeMetricItem(item: any, documentDate: string | null): MetricItem | null {
+function normalizeMetricItem(
+  item: RawMetricItem | null,
+  documentDate: string | null
+): MetricItem | null {
   const name = normalizeNullableString(item?.name);
   if (!name) return null;
 
@@ -299,11 +372,13 @@ function normalizeMetricItem(item: any, documentDate: string | null): MetricItem
     date,
     dateSource,
     fasting,
-    referenceRange: normalizeReferenceRange(item?.referenceRange),
+    referenceRange: normalizeReferenceRange(
+      asObject(item?.referenceRange) as RawReferenceRange | null
+    ),
   };
 }
 
-function normalizeExtractedFields(fields: any): ExtractedFields {
+function normalizeExtractedFields(fields: RawExtractedFields | null): ExtractedFields {
   return {
     date: normalizeDateString(fields?.date),
 
@@ -460,14 +535,28 @@ function dedupeMetrics(items: MetricItem[]): MetricItem[] {
   return result;
 }
 
+function isUploadCategoryValue(value: string | null): value is UploadCategoryValue {
+  return (
+    value === "Prescription" ||
+    value === "Lab Report" ||
+    value === "Image/X-ray" ||
+    value === "Doctor Note" ||
+    value === "Insurance Document"
+  );
+}
+
 function normalizeFinalData(
-  raw: any,
+  raw: RawValidateResult | null,
   category: UploadCategoryValue | string
 ): ValidateResult {
   const isMedical = Boolean(raw?.isMedical);
   const reason = normalizeNullableString(raw?.reason);
   const extractedText = normalizeMultilineString(raw?.extractedText);
-  const aiCategory = normalizeNullableString(raw?.documentCategory) as UploadCategoryValue | null;
+
+  const categoryCandidate = normalizeNullableString(raw?.documentCategory);
+  const aiCategory: UploadCategoryValue | null = isUploadCategoryValue(categoryCandidate)
+    ? categoryCandidate
+    : null;
 
   if (!isMedical) {
     return {
@@ -480,7 +569,6 @@ function normalizeFinalData(
     };
   }
 
-  // Category mismatch check
   if (category && aiCategory && aiCategory !== category) {
     return {
       isMedical: false,
@@ -492,29 +580,27 @@ function normalizeFinalData(
     };
   }
 
-  const extractedFields = normalizeExtractedFields(raw?.extractedFields ?? {});
+  const extractedFields = normalizeExtractedFields(
+    asObject(raw?.extractedFields) as RawExtractedFields | null
+  );
   const documentDate = extractedFields.date;
 
-  const medicationItems = Array.isArray(raw?.details?.medicationItems)
+  const rawMedicationItems = Array.isArray(raw?.details?.medicationItems)
     ? raw.details.medicationItems
-        .map((m: any) => normalizeMedicationItem(m, documentDate))
-        .filter(Boolean)
     : [];
+  const medicationItems = rawMedicationItems
+    .map((m) => normalizeMedicationItem(asObject(m) as RawMedicationItem | null, documentDate))
+    .filter((m): m is MedicationItem => m !== null);
 
-  const metrics = Array.isArray(raw?.details?.metrics)
-    ? raw.details.metrics
-        .map((m: any) => normalizeMetricItem(m, documentDate))
-        .filter(Boolean)
-    : [];
+  const rawMetrics = Array.isArray(raw?.details?.metrics) ? raw.details.metrics : [];
+  const metrics = rawMetrics
+    .map((m) => normalizeMetricItem(asObject(m) as RawMetricItem | null, documentDate))
+    .filter((m): m is MetricItem => m !== null);
 
   const details: Details = {
-    medicationItems: dedupeMedicationItems(medicationItems as MedicationItem[]),
-    metrics: dedupeMetrics(metrics as MetricItem[]),
+    medicationItems: dedupeMedicationItems(medicationItems),
+    metrics: dedupeMetrics(metrics),
   };
-
-  /* --------------------------------------------
-     Repair extractedFields from structured details
-  -------------------------------------------- */
 
   if (category === "Prescription") {
     if (!extractedFields.medications && details.medicationItems.length) {
@@ -530,7 +616,11 @@ function normalizeFinalData(
     }
   }
 
-  if ((category === "Lab Report" || category === "Doctor Note") && !extractedFields.results && details.metrics.length) {
+  if (
+    (category === "Lab Report" || category === "Doctor Note") &&
+    !extractedFields.results &&
+    details.metrics.length
+  ) {
     extractedFields.results = buildResultsSummary(details.metrics);
   }
 
@@ -772,7 +862,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // MOCK
     if (AI_MODE === "mock") {
       if (file.name.toLowerCase().includes("notmedical")) {
         return NextResponse.json({
@@ -1024,7 +1113,10 @@ STRICT OUTPUT REQUIREMENTS
 - Ensure arrays exist even if empty.
 `;
 
-    const content: any[] = [{ type: "input_text", text: prompt }];
+    const content: Array<
+      | { type: "input_text"; text: string }
+      | { type: "input_image"; image_url: string; detail: "high" }
+    > = [{ type: "input_text", text: prompt }];
 
     if (mime === "application/pdf") {
       const extracted = await extractTextFromPdf(buf);
@@ -1034,7 +1126,7 @@ STRICT OUTPUT REQUIREMENTS
           isMedical: false,
           reason:
             "This PDF appears to be scanned (no readable text). PDF OCR is not enabled yet. Please upload a JPG/PNG or a text-based PDF.",
-          documentCategory: null,  
+          documentCategory: null,
           extractedText: null,
           extractedFields: null,
           details: null,
@@ -1170,7 +1262,8 @@ STRICT OUTPUT REQUIREMENTS
     });
 
     const outText = resp.output_text || "";
-    const data = safeJsonParse(outText);
+    const parsed = safeJsonParse(outText);
+    const data = asObject(parsed) as RawValidateResult | null;
 
     if (!data) {
       return NextResponse.json(
@@ -1182,10 +1275,16 @@ STRICT OUTPUT REQUIREMENTS
     const normalized = normalizeFinalData(data, category);
 
     return NextResponse.json(normalized);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("AI ERROR:", err);
+
+    const message =
+      err instanceof Error
+        ? err.message
+        : (err as ErrorWithMessage | null)?.message || "Unknown error";
+
     return NextResponse.json(
-      { message: "Validation failed", detail: err?.message || "Unknown error" },
+      { message: "Validation failed", detail: message },
       { status: 500 }
     );
   }

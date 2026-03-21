@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import type { UploadedFile, UploadCategory, FormDataType } from "../type/type";
+import type {
+  UploadedFile,
+  UploadCategory,
+  FormDataType,
+  ExtractedDetails,
+} from "../type/type";
 import {
   ArrowUpTrayIcon,
   CheckCircleIcon,
@@ -45,6 +50,20 @@ interface UploadTypeCard {
   softBg: string;
   ring: string;
 }
+
+type ValidationResponse = {
+  isMedical?: boolean;
+  reason?: string;
+  extractedText?: string;
+  extractedFields?: Partial<FormDataType>;
+  details?: ExtractedDetails;
+  message?: string;
+  detail?: string;
+};
+
+type ErrorWithMessage = {
+  message?: string;
+};
 
 const uploadTypes: UploadTypeCard[] = [
   {
@@ -142,7 +161,6 @@ export default function MiddlePanel({
   setSelectedCategory,
   lockedToCategory,
   onUnlock,
-
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -150,9 +168,7 @@ export default function MiddlePanel({
   const [validated, setValidated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  // Prescription confirmation modal
   const [showMedConfirm, setShowMedConfirm] = useState(false);
-  
 
   const [toast, setToast] = useState<null | {
     type: "success" | "error" | "loading";
@@ -181,22 +197,17 @@ export default function MiddlePanel({
       doctorName: "",
       hospital: "",
       date: "",
-
       symptoms: "",
       diagnosis: "",
       notes: "",
-
       medications: "",
       dosage: "",
       frequency: "",
-
       testName: "",
       results: "",
-
       imagingType: "",
       bodyPart: "",
       findings: "",
-
       provider: "",
       policyNumber: "",
       claimNumber: "",
@@ -247,10 +258,8 @@ export default function MiddlePanel({
       if (isFutureDate(value)) {
         setErrorMessage("Future dates are not allowed. Please select today or a past date.");
         return;
-      } else {
-        if (errorMessage.toLowerCase().includes("future date")) {
-          setErrorMessage("");
-        }
+      } else if (errorMessage.toLowerCase().includes("future date")) {
+        setErrorMessage("");
       }
     }
 
@@ -293,18 +302,18 @@ export default function MiddlePanel({
       const raw = await res.text();
       console.log("AI RAW:", raw);
 
-      let data: any = {};
+      let data: ValidationResponse = {};
       try {
-        data = JSON.parse(raw);
+        data = JSON.parse(raw) as ValidationResponse;
       } catch {
         data = { message: raw };
       }
 
-      console.log("AI PARSED extractedFields:", data?.extractedFields);
-      console.log("AI PARSED details:", data?.details);
+      console.log("AI PARSED extractedFields:", data.extractedFields);
+      console.log("AI PARSED details:", data.details);
 
       if (!res.ok) {
-        const msg = data?.message || data?.detail || raw || "Validation failed. Please try again.";
+        const msg = data.message || data.detail || raw || "Validation failed. Please try again.";
         throw new Error(msg);
       }
 
@@ -344,21 +353,28 @@ export default function MiddlePanel({
 
       if (data.extractedFields) {
         setFormData((prev) => {
-          const next = { ...prev };
+          const next: FormDataType = { ...prev };
           const allowed = selectedCategory ? fieldsByCategory[selectedCategory] : [];
+
           for (const k of allowed) {
             const v = data.extractedFields?.[k];
-            if (typeof v === "string") next[k] = v as any;
+            if (typeof v === "string") {
+              next[k] = v;
+            }
           }
+
           return next;
         });
       }
 
       setValidated(true);
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+
+      setErrorMessage(message);
       setUploadedFile((prev) =>
-        prev ? { ...prev, status: "error", validationError: err?.message } : null
+        prev ? { ...prev, status: "error", validationError: message } : null
       );
       setValidated(false);
     } finally {
@@ -394,20 +410,17 @@ export default function MiddlePanel({
 
       const allowed = selectedCategory ? fieldsByCategory[selectedCategory] : [];
       for (const k of allowed) {
-        fd.append(String(k), (formData[k] ?? "") as string);
+        fd.append(String(k), formData[k] ?? "");
       }
 
       fd.append(
         "detailsJson",
-        JSON.stringify(uploadedFile?.details ?? { medicationItems: [], metrics: [] })
+        JSON.stringify(uploadedFile.details ?? { medicationItems: [], metrics: [] })
       );
 
       fd.append("isValidated", String(validated));
-      fd.append("extractedText", uploadedFile?.ocrText ?? "");
-
-      // Send tracking decision
-      fd.append('trackMedications', String(trackMedications));
-      
+      fd.append("extractedText", uploadedFile.ocrText ?? "");
+      fd.append("trackMedications", String(trackMedications));
 
       const res = await fetch(`${API_BASE}/medical-record`, {
         method: "POST",
@@ -424,17 +437,15 @@ export default function MiddlePanel({
       setToast({
         type: "success",
         title: "Saved successfully!",
-        message: trackMedications 
-        ? 'Your prescription was saved and medications added to your schedule.'
-        : 'Your prescription was saved to Records only.',
+        message: trackMedications
+          ? "Your prescription was saved and medications added to your schedule."
+          : "Your prescription was saved to Records only.",
       });
 
-      // Only set pulsing dot if user chose to track medications
-      if (trackMedications && selectedCategory === 'Prescription') {
-        sessionStorage.setItem('newMedicationAdded', 'true');
+      if (trackMedications && selectedCategory === "Prescription") {
+        sessionStorage.setItem("newMedicationAdded", "true");
       }
       setTimeout(() => setToast(null), 10000);
-        
 
       setTimeout(() => {
         resetForm();
@@ -445,8 +456,12 @@ export default function MiddlePanel({
         setErrorMessage("");
         onUnlock?.();
       }, 1500);
-    } catch (err: any) {
-      const msg = err?.message || "Failed to save record. Please try again.";
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : (err as ErrorWithMessage)?.message || "Failed to save record. Please try again.";
+
       setErrorMessage(msg);
 
       setToast({
