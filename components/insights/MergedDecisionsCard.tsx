@@ -53,7 +53,7 @@ export default function MetricDecisionsCard({
   }, [merges])
 
   const meaningfulGroupedMerges = groupedMerges.filter(
-    ([_, raws]) => raws.length > 1
+    ([, raws]) => raws.length > 1
   )
 
   if (!merges.length && !ignored.length) return null
