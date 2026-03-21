@@ -5,7 +5,7 @@ import React from 'react';
 import Link from 'next/link';
 import { CalendarPlus } from 'lucide-react';
 import { Button } from '@/components/UI/button';
-import type { NextAppointment } from '@/hooks/useAppointment';
+import type { NextAppointment } from 'app/(main)/appointments/hooks/useAppointment';
 
 // Formats "09:00" (24hr) → "9:00 AM"
 function formatTime(time: string): string {

@@ -30,13 +30,13 @@ export type MetricItem = {
   unit: string | null;
   date: string | null; // YYYY-MM-DD
 
-  // ✅ NEW (Recommended)
+  // NEW (Recommended)
   referenceRange?: ReferenceRange | null;
 
-  // ✅ NEW (Recommended) mainly for glucose tests
+  // NEW (Recommended) mainly for glucose tests
   fasting?: boolean | null; // true=fasting, false=non-fasting, null=unknown
 
-  // ✅ ADD THIS
+  // ADD THIS
   dateSource?: "explicit" | "document" | "unknown";
 };
 
@@ -56,7 +56,7 @@ export type UploadedFile = {
   validationError?: string;
 
   extractedFields?: Partial<FormDataType>;
-  details?: ExtractedDetails; // ✅ NEW
+  details?: ExtractedDetails; // NEW
 };
 
 export type FormDataType = {

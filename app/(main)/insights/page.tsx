@@ -1,24 +1,21 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SnapshotCard from '@/components/insights/SnapshotCard'
 import LabTrendsCard from '@/components/insights/LabTrendsCard'
 import MilestoneTimelineCard from '@/components/insights/MilestoneTimelineCard'
 import DataQualityCard from '@/components/insights/DataQualityCard'
-import type { DataQualityIssue } from '@/components/insights/types'
+import type {
+  AttentionItem,
+  DataQualityIssue,
+  Milestone,
+  SnapshotData,
+  TrackedLab,
+} from '@/components/insights/types'
 import api from '@/lib/api/client'
 import { useRouter } from 'next/navigation'
 // import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
 import MetricDecisionsCard from '@/components/insights/MergedDecisionsCard'
-
-type InsightsResponse = {
-  patientName: string | null
-  snapshot: any
-  labs: any[]
-  milestones: any[]
-  attentionItems: any[]
-  trackedMetricCount: number
-}
 
 type MetricMerge = {
   rawName: string
@@ -35,41 +32,63 @@ type IgnoredMetricSuggestion = {
   metricB: string
 }
 
+type InsightLabResponse = {
+  key: string
+  name: string
+  unit?: string | null
+  refLow?: number
+  refHigh?: number
+  latestDate?: string
+  latestValueText?: string
+  status?: TrackedLab['status']
+  isTracked?: boolean
+  sourceReports?: TrackedLab['sourceReports']
+  series?: TrackedLab['series']
+}
+
+type InsightsResponse = {
+  patientName: string | null
+  snapshot: SnapshotData | null
+  labs: InsightLabResponse[]
+  milestones: Milestone[]
+  attentionItems: AttentionItem[]
+  trackedMetricCount: number
+}
+
 export default function InsightsPage() {
   const [data, setData] = useState<InsightsResponse | null>(null)
   const [qualityIssues, setQualityIssues] = useState<DataQualityIssue[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
-  const [qualityLoading, setQualityLoading] = useState(false)
+  const [, setQualityLoading] = useState(false)
   const [merges, setMerges] = useState<MetricMerge[]>([])
   const [ignoredSuggestions, setIgnoredSuggestions] = useState<IgnoredMetricSuggestion[]>([])
   const router = useRouter()
 
   const loadInsights = async () => {
-    const res = await api.get('/insights/getDetails')
+    const res = await api.get<InsightsResponse>('/insights/getDetails')
     setData(res.data)
   }
 
   const loadMerges = async () => {
-    const res = await api.get('/insights/metric-merges')
+    const res = await api.get<MetricMergeItem[]>('/insights/metric-merges')
     setMerges(res.data ?? [])
   }
 
-const loadIgnoredSuggestions = async () => {
-  const res = await api.get<IgnoredMetricSuggestion[]>('/insights/ignored-metric-suggestions')
-  setIgnoredSuggestions(res.data ?? [])
-}
+  const loadIgnoredSuggestions = async () => {
+    const res = await api.get<IgnoredMetricSuggestion[]>('/insights/ignored-metric-suggestions')
+    setIgnoredSuggestions(res.data ?? [])
+  }
 
   const handleUndoMerge = async (rawName: string) => {
     await api.post('/insights/undo-metric-merge', { rawName })
     await refreshInsightsState()
   }
-  
 
   const loadQualityIssues = async () => {
     setQualityLoading(true)
     try {
-      const qualityRes = await api.get('/insights/data-quality')
+      const qualityRes = await api.get<DataQualityIssue[]>('/insights/data-quality')
       setQualityIssues(qualityRes.data ?? [])
     } finally {
       setQualityLoading(false)
@@ -84,7 +103,7 @@ const loadIgnoredSuggestions = async () => {
       })
 
       await refreshInsightsState()
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('Failed to undo keep-separate decision', e)
     }
   }
@@ -103,9 +122,13 @@ const loadIgnoredSuggestions = async () => {
       try {
         setLoading(true)
         setErr(null)
-        await Promise.all([ loadInsights(), loadQualityIssues(), loadMerges(), loadIgnoredSuggestions() ])
-      } catch (e: any) {
-        setErr(e?.response?.data?.message || e?.message || 'Failed to load insights')
+        await Promise.all([loadInsights(), loadQualityIssues(), loadMerges(), loadIgnoredSuggestions()])
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          setErr(e.message || 'Failed to load insights')
+        } else {
+          setErr('Failed to load insights')
+        }
       } finally {
         setLoading(false)
       }
@@ -123,7 +146,7 @@ const loadIgnoredSuggestions = async () => {
       })
 
       await refreshInsightsState()
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('Failed to merge metric', e)
     }
   }
@@ -139,7 +162,7 @@ const loadIgnoredSuggestions = async () => {
       })
 
       await refreshInsightsState()
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('Failed to ignore metric suggestion', e)
     }
   }
@@ -148,17 +171,17 @@ const loadIgnoredSuggestions = async () => {
   if (err) return <div className="text-sm text-red-600">{err}</div>
   if (!data) return null
 
-  const snapshot = {
+  const snapshot: SnapshotData = {
     lastUpload: data.snapshot?.lastUpload
       ? { ...data.snapshot.lastUpload }
-      : { date: '-', type: '-', facility: null },
+      : { date: '-', type: '-', facility: undefined },
     trackedConditions: [],
     coverage: data.snapshot?.coverage ?? { label: 'Partial', detail: '' },
   }
 
-  const attentionItems = data.attentionItems ?? []
+  const attentionItems: AttentionItem[] = data.attentionItems ?? []
 
-  const labs = (data.labs ?? []).map((l: any) => ({
+  const labs: TrackedLab[] = (data.labs ?? []).map((l) => ({
     key: l.key,
     displayName: l.name,
     unit: l.unit ?? '',
@@ -173,7 +196,7 @@ const loadIgnoredSuggestions = async () => {
     series: l.series ?? [],
   }))
 
-  const milestones = (data.milestones ?? []).map((m: any) => ({
+  const milestones: Milestone[] = (data.milestones ?? []).map((m) => ({
     id: m.id,
     date: m.date,
     title: m.title,
@@ -182,123 +205,67 @@ const loadIgnoredSuggestions = async () => {
   }))
 
   const sortedLabs = [...labs].sort((a, b) => {
-  if (a.isTracked && !b.isTracked) return -1
-  if (!a.isTracked && b.isTracked) return 1
-  return 0
-})
+    if (a.isTracked && !b.isTracked) return -1
+    if (!a.isTracked && b.isTracked) return 1
+    return 0
+  })
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+      <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
 
-  {/* Top snapshot */}
-  <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <LabTrendsCard
+            labs={sortedLabs}
+            onTrackTest={async (labKey) => {
+              const selectedLab = sortedLabs.find((lab) => lab.key === labKey)
+              if (!selectedLab) return
 
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              try {
+                if (selectedLab.isTracked) {
+                  await api.post('/insights/untrack-metric', {
+                    metricKey: selectedLab.key,
+                  })
+                } else {
+                  await api.post('/insights/track-metric', {
+                    metricKey: selectedLab.key,
+                    metricName: selectedLab.displayName,
+                  })
+                }
 
-    {/* LEFT MAIN CONTENT */}
-    <div className="lg:col-span-2 space-y-6">
+                await loadInsights()
+              } catch (e: unknown) {
+                if (e instanceof Error) {
+                  alert(e.message || 'Failed to update tracked test')
+                } else {
+                  alert('Failed to update tracked test')
+                }
+              }
+            }}
+          />
 
-      <LabTrendsCard
-        labs={sortedLabs}
-        onTrackTest={async (labKey) => {
-          const selectedLab = sortedLabs.find((lab) => lab.key === labKey)
-          if (!selectedLab) return
+          <MilestoneTimelineCard
+            milestones={milestones}
+            onViewFullHistory={() => router.push('/insights/history')}
+          />
+        </div>
 
-          try {
-            if (selectedLab.isTracked) {
-              await api.post('/insights/untrack-metric', {
-                metricKey: selectedLab.key,
-              })
-            } else {
-              await api.post('/insights/track-metric', {
-                metricKey: selectedLab.key,
-                metricName: selectedLab.displayName,
-              })
-            }
+        <div className="space-y-6">
+          <DataQualityCard
+            issues={qualityIssues}
+            onAction={handleMergeMetric}
+            onSkip={handleSkipMetric}
+          />
 
-            await loadInsights()
-          } catch (e: any) {
-            alert(
-              e?.response?.data?.message ||
-                e?.message ||
-                'Failed to update tracked test'
-            )
-          }
-        }}
-      />
-
-      <MilestoneTimelineCard
-        milestones={milestones}
-        onViewFullHistory={() => router.push('/insights/history')}
-      />
-
+          <MetricDecisionsCard
+            merges={merges}
+            ignored={ignoredSuggestions}
+            onUndoMerge={handleUndoMerge}
+            onUndoKeepSeparate={handleUndoKeepSeparate}
+          />
+        </div>
+      </div>
     </div>
-
-    {/* RIGHT SIDEBAR */}
-    <div className="space-y-6">
-
-      <DataQualityCard
-              issues={qualityIssues}
-              onAction={handleMergeMetric}
-              onSkip={handleSkipMetric}
-            />
-
-      <MetricDecisionsCard
-        merges={merges}
-        ignored={ignoredSuggestions}
-        onUndoMerge={handleUndoMerge}
-        onUndoKeepSeparate={handleUndoKeepSeparate}
-      />
-
-    </div>
-
-  </div>
-</div>
-
-
-
-
-
-
-
-    // <div className="space-y-6 animate-fade-in">
-    //   <div className="space-y-1">
-    //     <h1 className="text-xl font-bold text-gray-900">Health Insights</h1>
-    //   </div>
-
-    //   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-    //     <div className="lg:col-span-2 space-y-6">
-    //       <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
-    //       <LabTrendsCard labs={labs} />
-    //       <MilestoneTimelineCard
-    //         milestones={milestones}
-    //         onViewFullHistory={() => router.push('/insights/history')}
-    //       />
-    //       <MergedMetricsCard
-    //         merges={merges}
-    //         onUndo={handleUndoMerge}
-    //       />
-    //     </div>
-
-    //     <div className="lg:col-span-1 space-y-6">
-    //       {qualityLoading ? (
-    //         <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
-    //           Loading data quality checks…
-    //         </div>
-    //       ) : qualityIssues.length > 0 ? (
-    //         <DataQualityCard
-    //           issues={qualityIssues}
-    //           onAction={handleMergeMetric}
-    //           onSkip={handleSkipMetric}
-    //         />
-    //       ) : (
-    //         <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 shadow-sm">
-    //           No data quality issues found right now.
-    //         </div>
-    //       )}
-    //     </div>
-    //   </div>
-    // </div>
   )
-  
 }

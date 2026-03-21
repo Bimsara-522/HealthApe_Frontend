@@ -6,10 +6,10 @@ export type AttentionItem = {
   severity: 'low' | 'medium' | 'high'
 }
 
-export type LabPoint = {
-  date: string // YYYY-MM-DD
-  value: number
-}
+// export type LabPoint = {
+//   date: string // YYYY-MM-DD
+//   value: number
+// }
 
 export type TrackedLab = {
   key: string
@@ -39,13 +39,13 @@ export type TrackedLab = {
   }[]
 }
 
-export type Appointment = {
-  id: string
-  title: string
-  dateTime: string // ISO-ish
-  location?: string
-  note?: string
-}
+// export type Appointment = {
+//   id: string
+//   title: string
+//   dateTime: string // ISO-ish
+//   location?: string
+//   note?: string
+// }
 
 export type Milestone = {
   id: string
@@ -73,7 +73,7 @@ export type SnapshotData = {
   coverage: { label: 'Good' | 'Partial'; detail: string }
 }
 
-export type AppointmentPrep = {
-  highlights: string[]
-  questionsToAsk: string[]
-}
+// export type AppointmentPrep = {
+//   highlights: string[]
+//   questionsToAsk: string[]
+// }

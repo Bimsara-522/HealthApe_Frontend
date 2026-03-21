@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
-import api from '@/lib/api/api';
+import api from '@/lib/api/client';
 
 interface Message {
   id: string;

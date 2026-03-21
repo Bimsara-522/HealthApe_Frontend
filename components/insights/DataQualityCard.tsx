@@ -1,4 +1,3 @@
-import React from 'react'
 import Card from './ui/Card'
 import Badge from './ui/Badge'
 import type { DataQualityIssue } from './types'
