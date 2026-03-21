@@ -1,8 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { AppointmentList } from '@/components/appointments/AppointmentList'
-import type { Appointment } from 'app/(main)/appointments/types/appointment'
 import { AppointmentStatusBadge } from '@/components/appointments/AppointmentStatusBadge'
 import { useAppointments } from 'app/(main)/appointments/hooks/useAppointments'
 import Link from 'next/link'

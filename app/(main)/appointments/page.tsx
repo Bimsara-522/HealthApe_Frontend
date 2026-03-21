@@ -7,10 +7,10 @@ import { NextVisitCard } from '@/components/appointments/NextVisitCard'
 import { PastVisitsSidebar } from '@/components/appointments/PastVisitsSidebar'
 import { NewBookingButton } from '@/components/appointments/NewBookingButton'
 import { CalendarSkeleton } from './loading'
-import { AppointmentList } from '@/components/appointments/AppointmentList'
 import { ViewAllButton } from '@/components/appointments/ViewAllButton'
 import { useAppointments, useNextAppointment } from 'app/(main)/appointments/hooks/useAppointments'
 import { isBeforeToday } from 'app/(main)/appointments/lib/utils/date'
+import type { AxiosError } from 'axios'
 
 export default function AppointmentsPage() {
   // Fetch all appointments for calendar
@@ -45,7 +45,7 @@ export default function AppointmentsPage() {
           </div>
           <div className="text-center py-12">
             <p className="text-red-600">Failed to load appointments</p>
-            <p className="text-sm text-gray-500 mt-2">{(error as any)?.message}</p>
+            <p className="text-sm text-gray-500 mt-2">{(error as AxiosError)?.message}</p>
           </div>
         </div>
       </div>

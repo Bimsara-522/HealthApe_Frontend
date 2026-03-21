@@ -3,7 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAppointments, createAppointment, cancelAppointment, getNextAppointment } from 'app/(main)/appointments/lib/api/appointments'
-import type { CreateAppointmentDto } from 'app/(main)/appointments/types/appointment'
+import type { Appointment, CreateAppointmentDto } from 'app/(main)/appointments/types/appointment'
 
 // Query Keys (centralised, type-safe) 
 export const appointmentKeys = {
@@ -62,13 +62,13 @@ export function useCancelAppointment() {
         { queryKey: appointmentKeys.all() },
         (old: unknown) => {
           if (!Array.isArray(old)) return old
-          return old.map((a: any) =>
-            a?.id === id ? { ...a, status: 'cancelled' } : a
+          return old.map((a: Appointment) =>
+            a.id === id ? { ...a, status: 'cancelled' } : a
           )
         }
       )
       // also update detail cache if it exists
-      queryClient.setQueryData(appointmentKeys.detail(id), (old: any) => {
+      queryClient.setQueryData(appointmentKeys.detail(id), (old: Appointment | undefined) => {
         if (!old) return old
         return { ...old, status: 'cancelled' }
       })

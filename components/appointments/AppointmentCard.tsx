@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 import type { Appointment } from 'app/(main)/appointments/types/appointment'
 import { formatAppointmentDate } from 'app/(main)/appointments/lib/utils/date'
+import Image from 'next/image'
 
 interface Props {
   appointment: Appointment
@@ -33,7 +34,7 @@ export function AppointmentCard({ appointment, href, accentLeft }: Props) {
         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {/* appointment.doctor?.avatarUrl - Uses optional chaining to safely access properties if missing */}
           {appointment.doctor?.avatarUrl ? (
-            <img src={appointment.doctor.avatarUrl} alt="" className="w-full h-full object-cover" />
+            <Image src={appointment.doctor.avatarUrl} alt="" width={48} height={48} className="w-full h-full object-cover"/>
           ) : (
             <span className="text-gray-400 text-xl">👤</span>
           )}

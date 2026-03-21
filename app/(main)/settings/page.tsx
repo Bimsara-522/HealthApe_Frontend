@@ -5,7 +5,6 @@ import {
   UserCircleIcon,
   LockClosedIcon,
   BellIcon,
-  CameraIcon,
   EyeIcon,
   EyeSlashIcon,
   CheckCircleIcon,
@@ -25,6 +24,7 @@ import {
 } from '@/app/(main)/settings/lib/api/settings';
 import { useRouter } from "next/navigation";
 import api from "@/lib/api/client";
+import type { AxiosError } from "axios";
 
 // ─── Section Header 
 function SectionHeader({
@@ -201,11 +201,11 @@ export default function SettingsPage() {
         // Save the backend values as the "initial state"
         // This lets us detect if the user changed any toggles later
         setInitialNotifications(loadedNotifications);
-      } catch (error: any) {
+      } catch (error: unknown) {
         showToast(
           "error",
           "Failed to load settings",
-          error?.response?.data?.message || "Could not fetch your settings."
+          (error as AxiosError<{ message?: string }>)?.response?.data?.message || "Could not fetch your settings."
         );
       } finally {
         setLoading(false);
@@ -246,11 +246,11 @@ export default function SettingsPage() {
       setProfileSaved(true);
       showToast("success", "Profile updated!", "Your profile changes have been saved.");
       setTimeout(() => setProfileSaved(false), 3000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(
         "error",
         "Profile update failed",
-        error?.response?.data?.message || "Could not update your profile."
+        (error as AxiosError<{ message?: string }>)?.response?.data?.message || "Could not update your profile."
       );
     }
   };
@@ -271,11 +271,11 @@ export default function SettingsPage() {
       setInitialNotifications(payload);
 
       showToast("success", "Preferences saved!", "Your notification settings have been updated.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(
         "error",
         "Failed to save preferences",
-        error?.response?.data?.message || "Could not update notification settings."
+        (error as AxiosError<{ message?: string }>)?.response?.data?.message || "Could not update notification settings."       
       );
     } finally {
       setSavingNotifications(false);
@@ -321,11 +321,11 @@ export default function SettingsPage() {
         }
         router.replace("/login");  // After password change, prevents the user from pressing Back and returning to the settings page, instead forces a logout
       }, 3000);  // wait 3 seconds so the user sees the toast
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(
         "error",
         "Password update failed",
-        error?.response?.data?.message || "Could not update password."
+        (error as AxiosError<{ message?: string }>)?.response?.data?.message || "Could not update password."
       );
     }
   };

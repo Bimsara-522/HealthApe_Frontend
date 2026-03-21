@@ -61,7 +61,7 @@ export function useUpcomingCount() {
       try {
         const res = await api.get('/appointments');
         const now = new Date();
-        const upcoming = (res.data as any[]).filter((appt) => {
+        const upcoming = (res.data as NextAppointment[]).filter((appt) => {
           if (appt.status !== 'confirmed') return false;
           const [h, m] = appt.time.split(':').map(Number);
           const dt = new Date(appt.date);
