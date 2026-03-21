@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { useAuth } from '@/context/AuthContext';
 
 
 // Import icons from lucide-react
@@ -24,7 +23,6 @@ import {
   Settings,       // Settings
   LogOut,         // Log Out
 } from 'lucide-react';
-import { set } from 'zod';
 
 
 //Navigation items for the sidebar menu
@@ -72,7 +70,6 @@ export function Sidebar({ isOpen, onClose, onLogoutClick }: SidebarProps) {
     // Clear the flag when user visits medications page
     if (pathname === '/medications') {
       sessionStorage.removeItem('newMedicationAdded');
-      setNewMedication((prev)=>(prev ?false: prev));
     }
   }, [pathname]);
 
