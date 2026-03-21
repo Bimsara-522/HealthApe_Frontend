@@ -1,13 +1,13 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import api from "@/lib/api/client";
 import axios from "axios";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -85,7 +85,6 @@ export default function VerifyEmailPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#EAF3FF] via-white to-[#DCEBFF] px-3 py-3 sm:px-4 sm:py-4 flex items-center justify-center">
       <div className="w-full max-w-7xl min-h-[100dvh] sm:min-h-[95vh] rounded-none sm:rounded-3xl overflow-hidden shadow-none sm:shadow-2xl border-0 sm:border sm:border-blue-100 bg-white grid grid-cols-1 lg:grid-cols-2">
-        {/* Left Side */}
         <div className="relative hidden lg:flex items-center justify-center bg-[#0F52BA] p-10 xl:p-16">
           <div className="absolute inset-0 bg-gradient-to-br from-[#0F52BA] via-[#1565D8] to-[#0A3D91]" />
 
@@ -109,7 +108,6 @@ export default function VerifyEmailPage() {
           </div>
         </div>
 
-        {/* Right Side */}
         <div className="flex items-center justify-center px-5 py-8 sm:px-8 sm:py-10 md:px-10 lg:px-14 xl:px-16 bg-white">
           <div className="w-full max-w-md">
             <div className="lg:hidden mb-8 text-center">
@@ -208,5 +206,19 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#EAF3FF] via-white to-[#DCEBFF]">
+          <p className="text-gray-500 text-sm">Loading verification page...</p>
+        </main>
+      }
+    >
+      <VerifyEmailContent />
+    </Suspense>
   );
 }
