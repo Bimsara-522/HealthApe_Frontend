@@ -17,7 +17,7 @@ export async function getNextAppointment(): Promise<Appointment | null> {
     // ask backend for next appointment directly
     const { data } = await api.get<Appointment>('/appointments/next')
     return data
-  } catch (error: any) {
+  } catch {
     // Backend doesn't have /appointments/next endpoint (404), so compute next appointment client-side
     console.log('Backend does not have /appointments/next endpoint, falling back to client-side filtering')
     const allAppointments = await getAppointments({ month: undefined })

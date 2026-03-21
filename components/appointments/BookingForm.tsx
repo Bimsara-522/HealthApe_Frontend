@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { useCreateAppointment } from 'app/(main)/appointments/hooks/useAppointments'
 import { useEffect, useRef, useState } from 'react'
 import { DoctorSuggestion, searchDoctors } from '@/app/(main)/appointments/lib/api/doctors'
-import Link from 'next/link'
 
 // - doctorName is required (user can type anything)
 // - doctorId is optional (only set if user selects a suggestion)
@@ -124,7 +123,7 @@ export function BookingForm() {
   const onSubmit = async (values: FormValues) => {
     try {
       // values.doctorId may be undefined if typed manually — that's OK.
-      const appt = await mutateAsync(values as any) // mutateAsync(values) waits for a created appointment
+      const appt = await mutateAsync(values) // mutateAsync(values) waits for a created appointment
       router.push(`/appointments/${appt.id}`) // backend is expected to return a new appointment object to frontend and then when it is returned, frontend navigates to that appointment details page
     } catch {
       // toast.error('Failed to book appointment')

@@ -7,6 +7,7 @@ import { useCancelAppointment } from 'app/(main)/appointments/hooks/useAppointme
 import { AppointmentStatusBadge } from '@/components/appointments/AppointmentStatusBadge'
 import { formatAppointmentDate } from 'app/(main)/appointments/lib/utils/date'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function AppointmentDetailClient({ id }: { id: string }) {
   const router = useRouter()
@@ -27,7 +28,7 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
     return (
       <div className="p-6 max-w-4xl">
         <h1 className="text-2xl font-bold">Appointment</h1>
-        <p className="mt-2 text-sm text-red-600">  {(error as any)?.message ?? 'Failed to load appointment'} </p>
+        <p className="mt-2 text-sm text-red-600">{error instanceof Error ? error.message : 'Failed to load appointment'}</p>
         <Link className="inline-block mt-4 text-blue-600 hover:underline" href="/appointments">  ← Back to appointments </Link>
       </div>
     )
@@ -88,9 +89,9 @@ export default function AppointmentDetailClient({ id }: { id: string }) {
         {/* Card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+            <div className="relative w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
               {appt.doctor?.avatarUrl ? (
-                <img src={appt.doctor.avatarUrl} alt="" className="w-full h-full object-cover" />
+                <Image src={appt.doctor.avatarUrl} alt={`${appt.doctor?.name ?? appt.doctorNameSnapshot ?? 'Doctor'} avatar`} fill className="object-cover" sizes="56px"/>
               ) : (
                 <span className="text-xl">👤</span>
               )}
