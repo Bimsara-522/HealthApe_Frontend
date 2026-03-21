@@ -5,7 +5,7 @@
  
 'use client';
  
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect,} from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Pill, Check, Package, MoreVertical, Pencil, Trash2, Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -283,9 +283,6 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
   // Sort times chronologically
   const sortedTimes = Array.from(groupedDoses.keys()).sort();
   
-  // Find the first upcoming time slot with pending doses
-  const foundNextRef = useRef(false);
-  foundNextRef.current = false;
   
   // Get today's date formatted
   const today = new Date().toLocaleDateString('en-US', { 
@@ -298,6 +295,19 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
   // Calculate today's progress
   const completedCount = doses.filter(d => d.status === 'taken').length;
   const totalCount = doses.length;
+
+  const timeSlotProps = sortedTimes.map((time, idx) => {
+    const timeDoses = groupedDoses.get(time) || [];
+    const prevHasNext = sortedTimes.slice(0, idx).some(t => {
+      const d = groupedDoses.get(t) || [];
+      return d.some(dose => dose.status === 'pending') && isNextUpcoming(t, d);
+    });
+    const hasPending = timeDoses.some(d => d.status === 'pending');
+    const isNext = !prevHasNext && hasPending && isNextUpcoming(time, timeDoses);
+    const isGrace = !prevHasNext && !isNext && isInGracePeriod(time, timeDoses);
+    return { time, timeDoses, isNext, isGrace };
+  });
+
   
   return (
     <div className="space-y-4">
@@ -315,24 +325,17 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
       
       {/* Time Slots */}
       <div className="space-y-3">
-        {sortedTimes.map(time => {
-          const timeDoses = groupedDoses.get(time) || [];
-          const hasPending = timeDoses.some(d => d.status === 'pending');
-          const isNext = !foundNextRef.current && hasPending && isNextUpcoming(time, timeDoses);
-          if (isNext) foundNextRef.current = true;
-          
-          return (
-           <TimeSlot
-             key={time}
-             time={time}
-             doses={timeDoses}
-             isNext={isNext}
-             isGrace={!foundNextRef.current && !isNext && isInGracePeriod(time, timeDoses)}
-             onMarkTaken={onMarkTaken}
-             onMarkSkipped={onMarkSkipped}
-            />
-          );
-        })}
+        {timeSlotProps.map(({ time, timeDoses, isNext, isGrace }) => (
+          <TimeSlot
+            key={time}
+            time={time}
+            doses={timeDoses}
+            isNext={isNext}
+            isGrace={isGrace}
+            onMarkTaken={onMarkTaken}
+            onMarkSkipped={onMarkSkipped}
+          />
+        ))}
       </div>
     </div>
   );
