@@ -5,7 +5,7 @@
  
 'use client';
  
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Pill, Check, Package, MoreVertical, Pencil, Trash2, Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -284,7 +284,8 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
   const sortedTimes = Array.from(groupedDoses.keys()).sort();
   
   // Find the first upcoming time slot with pending doses
-  let foundNext = false;
+  const foundNextRef = useRef(false);
+  foundNextRef.current = false;
   
   // Get today's date formatted
   const today = new Date().toLocaleDateString('en-US', { 
@@ -303,7 +304,7 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Today's Schedule</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Today&apos;s Schedule</h2>
           <p className="text-sm text-gray-500">{today}</p>
         </div>
         <div className="text-right">
@@ -317,9 +318,8 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
         {sortedTimes.map(time => {
           const timeDoses = groupedDoses.get(time) || [];
           const hasPending = timeDoses.some(d => d.status === 'pending');
-          const isNext = !foundNext && hasPending && isNextUpcoming(time, timeDoses);
-          
-          if (isNext) foundNext = true;
+          const isNext = !foundNextRef.current && hasPending && isNextUpcoming(time, timeDoses);
+          if (isNext) foundNextRef.current = true;
           
           return (
            <TimeSlot
@@ -327,7 +327,7 @@ function TodaysSchedule({ doses, onMarkTaken, onMarkSkipped }: TodaysSchedulePro
              time={time}
              doses={timeDoses}
              isNext={isNext}
-             isGrace={!foundNext && !isNext && isInGracePeriod(time, timeDoses)}
+             isGrace={!foundNextRef.current && !isNext && isInGracePeriod(time, timeDoses)}
              onMarkTaken={onMarkTaken}
              onMarkSkipped={onMarkSkipped}
             />
@@ -367,7 +367,7 @@ function PageHeader() {
 interface WeeklyAdherenceCardProps {
   days: DayAdherence[];
   percentage: number;
-  onToggleDay: (index: number) => void;
+  onToggleDay: () => void;
 }
 
 function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceCardProps) {
@@ -401,7 +401,7 @@ function WeeklyAdherenceCard({ days, percentage, onToggleDay }: WeeklyAdherenceC
         {days.map((day: DayAdherence, index: number) => (
           <button
             key={index}
-            onClick={() => onToggleDay(index)}
+            onClick={() => onToggleDay()}
             className="flex flex-col items-center gap-2 group"
           >
             <div
@@ -619,7 +619,7 @@ export default function MedicationsPage() {
           const logs = await logRes.json();
           doses.forEach(dose => {
             const match = logs.find(
-              (l: any) =>
+              (l: { medicationId: string; scheduledTime: string; scheduledDate: string; status: string; takenAt?: string }) =>
                 l.medicationId === dose.medicationId &&
               l.scheduledTime === dose.scheduledTime &&
               l.scheduledDate === today
@@ -727,7 +727,7 @@ export default function MedicationsPage() {
       // Map API response to DayAdherence format
       const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
       setWeeklyAdherence(
-        data.map((d: any, i: number) => ({
+        data.map((d: { completed: boolean; isWeekend: boolean }, i: number) => ({
           day: days[i],
           completed: d.completed,
           isWeekend: d.isWeekend,
@@ -743,7 +743,7 @@ export default function MedicationsPage() {
   const adherencePercentage = Math.round((completedDays / weeklyAdherence.length) * 100);
 
   // HANDLERS
-  const handleToggleDay = (_index: number) => {};
+  const handleToggleDay = () => {};
 
   // Show a toast message and auto-hide after 3 seconds
   const showToast = (type: 'success' | 'error', message: string) => {
