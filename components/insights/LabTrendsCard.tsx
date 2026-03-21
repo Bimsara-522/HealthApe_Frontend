@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   LineChart,
   Line,
@@ -27,21 +27,16 @@ export default function LabTrendsCard({
   const [selectedLabKey, setSelectedLabKey] = useState('')
   const [showSources, setShowSources] = useState(false)
 
-  useEffect(() => {
-    if (!selectedLabKey && labs[0]?.key) {
-      setSelectedLabKey(labs[0].key)
+  const effectiveSelectedLabKey = useMemo(() => {
+    if (selectedLabKey && labs.some((l) => l.key === selectedLabKey)) {
+      return selectedLabKey
     }
-  }, [labs, selectedLabKey])
-
-  useEffect(() => {
-    if (selectedLabKey && !labs.some((l) => l.key === selectedLabKey)) {
-      setSelectedLabKey(labs[0]?.key ?? '')
-    }
+    return labs[0]?.key ?? ''
   }, [labs, selectedLabKey])
 
   const selectedLab = useMemo(
-    () => labs.find((l) => l.key === selectedLabKey) ?? labs[0],
-    [labs, selectedLabKey]
+    () => labs.find((l) => l.key === effectiveSelectedLabKey) ?? labs[0],
+    [labs, effectiveSelectedLabKey]
   )
 
   const trackedCount = useMemo(
@@ -70,7 +65,7 @@ export default function LabTrendsCard({
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600">Track:</span>
           <select
-            value={selectedLabKey}
+            value={effectiveSelectedLabKey}
             onChange={(e) => {
               setSelectedLabKey(e.target.value)
               setShowSources(false)
@@ -104,7 +99,7 @@ export default function LabTrendsCard({
                   setShowSources(false)
                 }}
                 className={`w-full rounded-xl border p-4 text-left transition ${
-                  l.key === selectedLabKey
+                  l.key === effectiveSelectedLabKey
                     ? 'border-gray-900 bg-gray-50'
                     : 'border-gray-100 bg-white hover:bg-gray-50'
                 }`}

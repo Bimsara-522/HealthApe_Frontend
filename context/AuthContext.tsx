@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import api from '@/lib/api/client';
 import { useRouter } from 'next/navigation';
 
@@ -24,8 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ useCallback prevents function from recreating every render
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const response = await api.get('/users/me');
       setUser(response.data);
@@ -34,23 +34,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
-  const logout = async () => {
-  try {
-    await api.post('/auth/logout');
-  } catch (error) {
-    console.error('Logout failed', error);
-  } finally {
-    setUser(null);
-    router.replace('/login');
-  }
-};
-  // ✅ useMemo prevents infinite re-renders
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout failed', error);
+    } finally {
+      setUser(null);
+      router.replace('/login');
+    }
+  }, [router]);
+
   const value = useMemo(
     () => ({
       user,
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       fetchUser,
     }),
-    [user, loading, fetchUser]
+    [user, loading, logout, fetchUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
