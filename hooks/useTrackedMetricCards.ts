@@ -14,6 +14,17 @@ export interface TrackedMetricCard {
   refHigh: number | null;
 }
 
+interface InsightLab {
+  key: string;
+  name: string;
+  latestValueText: string | null;
+  unit: string | null;
+  latestDate: string | null;
+  status: 'Low' | 'Normal' | 'High' | 'Unknown';
+  refLow: number | null;
+  refHigh: number | null;
+}
+
 export function useTrackedMetricCards() {
   const [cards, setCards] = useState<TrackedMetricCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +47,7 @@ export function useTrackedMetricCards() {
         }
 
         // Build a lookup map from the insights labs array
-        const labsMap = new Map<string, any>();
+        const labsMap = new Map<string, InsightLab>();
         for (const lab of insightsRes.data?.labs ?? []) {
           labsMap.set(lab.key, lab);
         }

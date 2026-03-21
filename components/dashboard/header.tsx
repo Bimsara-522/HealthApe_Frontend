@@ -4,7 +4,7 @@
 'use client';
 
 import React from 'react';
-import { Menu, Bell, User } from 'lucide-react';
+import { Menu, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import NotificationsBell from '@/app/(main)/notifications/ui/NotificationsBell';
 
@@ -19,7 +19,7 @@ export function Header({
   onMenuClick, 
 }: HeaderProps) {
 
-  const { user, logout } = useAuth();
+  const {user} = useAuth();
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">

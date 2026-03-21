@@ -13,6 +13,26 @@ import { EyeIcon } from '@heroicons/react/24/outline';
 import { useMedicalRecord, useMedicalRecords } from '@/hooks/useMedicalRecords';
 import { Button } from '@/components/UI/button';
 
+interface MetricItem {
+  name?: string;
+  value?: number | string | null;
+  unit?: string | null;
+  referenceRange?: {
+    text?: string | null;
+    low?: number | null;
+    high?: number | null;
+  } | string | null;
+  date?: string | null;
+}
+ 
+interface MedicationDetailItem {
+  name?: string;
+  dosage?: string | null;
+  frequency?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Not recorded';
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -232,7 +252,7 @@ export default function RecordDetailPage() {
         <div className="py-2 border-b border-gray-50">
           <span className="text-xs text-gray-400 uppercase tracking-wide block mb-2">Metrics</span>
           <div className="space-y-1.5">
-            {record.details.metrics.map((m: any, i: number) => (
+            {record.details.metrics.map((m:MetricItem, i:number)=>(
               <div key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">
                 <span className="font-medium">{m.name ?? '—'}</span>
                 {m.value != null && (
@@ -266,7 +286,7 @@ export default function RecordDetailPage() {
         <div className="py-2 border-b border-gray-50">
           <span className="text-xs text-gray-400 uppercase tracking-wide block mb-2">Medication Items</span>
           <div className="space-y-1.5">
-            {record.details.medicationItems.map((med: any, i: number) => (
+            {record.details.medicationItems.map((med:MedicationDetailItem, i:number)=>(
               <div key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2">
                 <span className="font-medium">{med.name ?? '—'}</span>
                 {med.dosage && <span className="ml-2 text-gray-500">{med.dosage}</span>}
