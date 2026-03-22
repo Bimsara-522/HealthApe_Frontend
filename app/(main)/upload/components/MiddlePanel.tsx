@@ -25,7 +25,7 @@ import { CheckCircleIcon as CheckSolid } from "@heroicons/react/24/solid";
 
 const MAX_FILE_MB = 8;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "application/pdf"] as const;
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 type Props = {
   uploadedFile: UploadedFile | null;
