@@ -561,7 +561,7 @@ function MedicationCard({ medication, isMenuOpen, onToggleMenu, onEdit, onDelete
  
 // MAIN PAGE COMPONENT
  
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function MedicationsPage() {
   const router = useRouter();
