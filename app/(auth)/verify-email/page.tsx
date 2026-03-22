@@ -99,13 +99,14 @@ export default function VerifyEmailPage() {
             </p>
 
             <Image
-              src="/signup img.jpg"
+              src="/signup img.png"
               alt="Verify email illustration"
-              className="rounded-2xl shadow-2xl object-cover w-full max-w-md h-auto"
+              className="rounded-2xl object-cover drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]"
               width={700}
               height={700}
               priority
             />
+
           </div>
         </div>
 
