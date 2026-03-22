@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "dev"]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "dev"]
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -28,3 +28,5 @@ jobs:
 
       - name: Build project
         run: npm run build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
