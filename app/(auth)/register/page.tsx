@@ -155,7 +155,7 @@ export default function RegisterPage() {
 
               <p className="text-sm text-gray-500 leading-6">
                 By creating an account, you agree to our{" "}
-                <Link href="/terms" className="text-[#0F52BA] font-medium">
+                <Link href="/terms" className="text-[#0F52BA] font-medium" aria-disabled={true}>
                   Terms of Service
                 </Link>{" "}
                 and{" "}
