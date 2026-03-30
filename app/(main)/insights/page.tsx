@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SnapshotCard from '@/components/insights/SnapshotCard'
 import LabTrendsCard from '@/components/insights/LabTrendsCard'
 import MilestoneTimelineCard from '@/components/insights/MilestoneTimelineCard'
@@ -14,7 +14,6 @@ import type {
 } from '@/components/insights/types'
 import api from '@/lib/api/client'
 import { useRouter } from 'next/navigation'
-// import MergedMetricsCard from '@/components/insights/MergedMetricsCard'
 import MetricDecisionsCard from '@/components/insights/MergedDecisionsCard'
 
 type MetricMerge = {
@@ -64,6 +63,7 @@ export default function InsightsPage() {
   const [merges, setMerges] = useState<MetricMerge[]>([])
   const [ignoredSuggestions, setIgnoredSuggestions] = useState<IgnoredMetricSuggestion[]>([])
   const router = useRouter()
+  const labTrendsRef = useRef<HTMLDivElement | null>(null)
 
   const loadInsights = async () => {
     const res = await api.get<InsightsResponse>('/insights/getDetails')
@@ -167,6 +167,13 @@ export default function InsightsPage() {
     }
   }
 
+  const handleViewLabTrends = () => {
+    labTrendsRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  }
+
   if (loading) return <div className="text-sm text-gray-500">Loading insights…</div>
   if (err) return <div className="text-sm text-red-600">{err}</div>
   if (!data) return null
@@ -211,39 +218,45 @@ export default function InsightsPage() {
   })
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <SnapshotCard snapshot={snapshot} attentionItems={attentionItems} />
+    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
+      <SnapshotCard
+        snapshot={snapshot}
+        attentionItems={attentionItems}
+        onViewLabTrends={handleViewLabTrends}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <LabTrendsCard
-            labs={sortedLabs}
-            onTrackTest={async (labKey) => {
-              const selectedLab = sortedLabs.find((lab) => lab.key === labKey)
-              if (!selectedLab) return
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <div ref={labTrendsRef}>
+            <LabTrendsCard
+              labs={sortedLabs}
+              onTrackTest={async (labKey) => {
+                const selectedLab = sortedLabs.find((lab) => lab.key === labKey)
+                if (!selectedLab) return
 
-              try {
-                if (selectedLab.isTracked) {
-                  await api.post('/insights/untrack-metric', {
-                    metricKey: selectedLab.key,
-                  })
-                } else {
-                  await api.post('/insights/track-metric', {
-                    metricKey: selectedLab.key,
-                    metricName: selectedLab.displayName,
-                  })
+                try {
+                  if (selectedLab.isTracked) {
+                    await api.post('/insights/untrack-metric', {
+                      metricKey: selectedLab.key,
+                    })
+                  } else {
+                    await api.post('/insights/track-metric', {
+                      metricKey: selectedLab.key,
+                      metricName: selectedLab.displayName,
+                    })
+                  }
+
+                  await loadInsights()
+                } catch (e: unknown) {
+                  if (e instanceof Error) {
+                    alert(e.message || 'Failed to update tracked test')
+                  } else {
+                    alert('Failed to update tracked test')
+                  }
                 }
-
-                await loadInsights()
-              } catch (e: unknown) {
-                if (e instanceof Error) {
-                  alert(e.message || 'Failed to update tracked test')
-                } else {
-                  alert('Failed to update tracked test')
-                }
-              }
-            }}
-          />
+              }}
+            />
+          </div>
 
           <MilestoneTimelineCard
             milestones={milestones}

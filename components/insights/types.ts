@@ -1,9 +1,11 @@
 export type AttentionItem = {
   id: string
-  type: 'abnormal' | 'trend' | 'missing' | 'med_change' | 'general'
+  type: 'abnormal' | 'med_change'
   title: string
   detail: string
   severity: 'low' | 'medium' | 'high'
+  fullDetail?: string
+  detailsList?: string[]
 }
 
 // export type LabPoint = {
