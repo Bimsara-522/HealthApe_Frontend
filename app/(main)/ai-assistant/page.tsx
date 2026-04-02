@@ -2,7 +2,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
+import { Menu, MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import api from '@/lib/api/api';
 
 interface Message {
@@ -140,6 +140,7 @@ function AssistantAvatar() {
 export default function AiAssistantPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -388,6 +389,15 @@ export default function AiAssistantPage() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen((prev) => !prev)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label={isHistoryOpen ? 'Collapse chat history' : 'Open chat history'}
+            title={isHistoryOpen ? 'Collapse chat history' : 'Open chat history'}
+          >
+            <Menu size={18} />
+          </button>
           <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
             <Image
               src="/HealthApeLogo.png"
