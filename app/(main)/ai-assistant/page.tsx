@@ -144,6 +144,7 @@ export default function AiAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isClearingAll, setIsClearingAll] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(false);
   const [welcomeMeta, setWelcomeMeta] = useState<WelcomeResponse['metadata']>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -351,7 +352,30 @@ export default function AiAssistantPage() {
   };
 
   const handleClearAllHistory = async () => {
-    // Step 1: UI wiring only. Deletion logic will be added in the next step.
+    if (sessions.length === 0 || isClearingAll) {
+      return;
+    }
+
+    const shouldClear = window.confirm('Clear all chat history? This action cannot be undone.');
+    if (!shouldClear) {
+      return;
+    }
+
+    setIsClearingAll(true);
+
+    try {
+      await Promise.all(sessions.map((session) => api.delete(`/chat/sessions/${session.id}`)));
+
+      setSessions([]);
+      setActiveSessionId(null);
+      setMessages([]);
+
+      await handleCreateNewChat();
+    } catch {
+      // Keep current UI state if bulk delete fails.
+    } finally {
+      setIsClearingAll(false);
+    }
   };
 
   return (
@@ -377,9 +401,9 @@ export default function AiAssistantPage() {
             type="button"
             onClick={handleClearAllHistory}
             className="mt-2 w-full rounded-lg border border-red-200 bg-red-50 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
-            disabled={sessions.length === 0}
+            disabled={sessions.length === 0 || isClearingAll}
           >
-            Clear all history
+            {isClearingAll ? 'Clearing...' : 'Clear all history'}
           </button>
 
           <div className="mt-4 space-y-2 overflow-y-auto">
