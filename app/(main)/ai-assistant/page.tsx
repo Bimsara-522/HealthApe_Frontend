@@ -123,6 +123,20 @@ function renderAssistantMessage(text: string) {
   return <div className="space-y-2">{nodes}</div>;
 }
 
+function AssistantAvatar() {
+  return (
+    <div className="w-8 h-8 rounded-full overflow-hidden border border-blue-200 bg-white flex-shrink-0 flex items-center justify-center">
+      <Image
+        src="/HealthApeLogo.png"
+        alt="HealthApe assistant avatar"
+        width={24}
+        height={24}
+        className="h-full w-full object-contain p-0.5"
+      />
+    </div>
+  );
+}
+
 export default function AiAssistantPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
@@ -407,11 +421,7 @@ export default function AiAssistantPage() {
               key={message.id}
               className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.sender === 'assistant' && (
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-                  ♥
-                </div>
-              )}
+              {message.sender === 'assistant' && <AssistantAvatar />}
               <div
                 className={`max-w-md ${
                   message.sender === 'user'
@@ -437,9 +447,7 @@ export default function AiAssistantPage() {
 
           {isLoading && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
-                ♥
-              </div>
+              <AssistantAvatar />
               <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3">
                 <div className="flex gap-2">
                   <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
