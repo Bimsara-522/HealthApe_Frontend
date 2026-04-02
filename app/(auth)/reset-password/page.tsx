@@ -25,6 +25,7 @@ function ResetPasswordContent() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [codeVerified, setCodeVerified] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleVerifyCode = async () => {
     try {
@@ -211,7 +212,7 @@ function ResetPasswordContent() {
                   New Password
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
@@ -225,7 +226,7 @@ function ResetPasswordContent() {
                   Confirm Password
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
@@ -233,6 +234,16 @@ function ResetPasswordContent() {
                   required
                 />
               </div>
+
+              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showPassword}
+                  onChange={(e) => setShowPassword(e.target.checked)}
+                  className="h-4 w-4 accent-[#0F52BA]"
+                />
+                Show passwords
+              </label>
 
               {errorMessage && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

@@ -42,40 +42,24 @@ export default function SnapshotCard({
         </Badge>
       }
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-          <p className="text-xs font-medium text-gray-600">Latest uploaded document</p>
+      <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+        <p className="text-xs font-medium text-gray-600">Latest uploaded document</p>
 
-          {snapshot.lastUpload ? (
-            <>
-              <p className="mt-1 text-sm font-semibold text-gray-900">
-                {snapshot.lastUpload.type}
-              </p>
-              <p className="mt-1 text-xs text-gray-700">{snapshot.lastUpload.date}</p>
-              {snapshot.lastUpload.facility ? (
-                <p className="mt-1 text-xs text-gray-500">{snapshot.lastUpload.facility}</p>
-              ) : null}
-            </>
-          ) : (
-            <p className="mt-1 text-sm text-gray-700">No uploads yet.</p>
-          )}
-        </div>
+        {snapshot.lastUpload ? (
+          <>
+            <p className="mt-1 text-sm font-semibold text-gray-900">
+              {snapshot.lastUpload.type}
+            </p>
+            <p className="mt-1 text-xs text-gray-700">{snapshot.lastUpload.date}</p>
+            {snapshot.lastUpload.facility ? (
+              <p className="mt-1 text-xs text-gray-500">{snapshot.lastUpload.facility}</p>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-gray-700">No uploads yet.</p>
+        )}
 
-        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 sm:col-span-2">
-          <p className="text-xs font-medium text-gray-600">Tracked conditions</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {snapshot.trackedConditions.length ? (
-              snapshot.trackedConditions.map((c) => (
-                <Badge key={c} tone="blue">
-                  {c}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-sm text-gray-700">No conditions detected yet.</p>
-            )}
-          </div>
-          <p className="mt-3 text-xs text-gray-500">{snapshot.coverage.detail}</p>
-        </div>
+        <p className="mt-3 text-xs text-gray-500">{snapshot.coverage.detail}</p>
       </div>
 
       <div className="mt-5">
