@@ -352,8 +352,14 @@ export default function AiAssistantPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-120px)] bg-white rounded-lg border border-gray-200 overflow-hidden">
-      {isHistoryOpen && (
-        <aside className="w-full md:w-72 md:min-w-72 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 p-4 flex flex-col max-h-56 md:max-h-none">
+      <aside
+        aria-hidden={!isHistoryOpen}
+        className={`bg-gray-50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+          isHistoryOpen
+            ? 'w-full md:w-72 md:min-w-72 max-h-56 md:max-h-none border-b md:border-b-0 md:border-r border-gray-200 p-4 opacity-100'
+            : 'w-0 md:w-0 md:min-w-0 max-h-0 md:max-h-none border-b-0 md:border-r-0 p-0 opacity-0 pointer-events-none'
+        }`}
+      >
           <button
             type="button"
             onClick={handleCreateNewChat}
@@ -393,8 +399,7 @@ export default function AiAssistantPage() {
               </div>
             ))}
           </div>
-        </aside>
-      )}
+      </aside>
 
       <div className="flex-1 flex flex-col">
         {/* Header */}
