@@ -424,7 +424,7 @@ export default function AiAssistantPage() {
             />
           </div>
           <div className="flex-1">
-            <h2 className="font-semibold text-gray-900">HealthApe Assistant</h2>
+            <h2 className="font-semibold text-gray-900">Help Ape</h2>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-xs text-green-600 font-medium">Online</span>
