@@ -342,6 +342,14 @@ export default function AiAssistantPage() {
     }
   };
 
+  const handleSelectSession = (sessionId: number) => {
+    setActiveSessionId(sessionId);
+
+    if (window.innerWidth < 768) {
+      setIsHistoryOpen(false);
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-120px)] bg-white rounded-lg border border-gray-200 overflow-hidden">
       {isHistoryOpen && (
@@ -364,7 +372,7 @@ export default function AiAssistantPage() {
                     ? 'bg-blue-50 border-blue-200'
                     : 'bg-white border-gray-200 hover:border-gray-300'
                 }`}
-                onClick={() => setActiveSessionId(session.id)}
+                onClick={() => handleSelectSession(session.id)}
               >
                 <MessageSquare size={14} className="text-gray-500" />
                 <div className="flex-1 min-w-0">
