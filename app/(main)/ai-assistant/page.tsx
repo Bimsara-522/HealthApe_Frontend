@@ -436,7 +436,7 @@ export default function AiAssistantPage() {
         </div>
 
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-4">
           {isSessionLoading && (
             <p className="text-sm text-gray-500">Loading chat...</p>
           )}
@@ -448,7 +448,7 @@ export default function AiAssistantPage() {
             >
               {message.sender === 'assistant' && <AssistantAvatar />}
               <div
-                className={`max-w-md ${
+                className={`max-w-[85%] md:max-w-md break-words ${
                   message.sender === 'user'
                     ? 'bg-blue-500 text-white rounded-2xl rounded-tr-none'
                     : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-none'
@@ -457,7 +457,7 @@ export default function AiAssistantPage() {
                 {message.sender === 'assistant' ? (
                   renderAssistantMessage(message.text)
                 ) : (
-                  <p className="text-sm whitespace-pre-line">{message.text}</p>
+                  <p className="text-sm whitespace-pre-line break-words">{message.text}</p>
                 )}
                 <span
                   className={`text-xs mt-2 block ${
