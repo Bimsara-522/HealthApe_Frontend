@@ -22,6 +22,7 @@ export default function RegisterPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignUp = async (data: SignUpForm) => {
     try {
@@ -145,23 +146,34 @@ export default function RegisterPage() {
                 <label className="block text-sm font-medium text-[#0F52BA] mb-2">
                   Password
                 </label>
+
                 <input
                   {...register("password", { required: true })}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-xl shadow-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0F52BA] focus:border-[#0F52BA] transition"
                 />
+
+                <label className="mt-2 flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                    className="h-4 w-4 accent-[#0F52BA]"
+                  />
+                  Show password
+                </label>
               </div>
 
               <p className="text-sm text-gray-500 leading-6">
                 By creating an account, you agree to our{" "}
-                <Link href="/terms" className="text-[#0F52BA] font-medium" aria-disabled={true}>
+                <span className="text-[#0F52BA] font-medium cursor-default">
                   Terms of Service
-                </Link>{" "}
+                </span>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-[#0F52BA] font-medium">
+                <span className="text-[#0F52BA] font-medium cursor-default">
                   Privacy Policy
-                </Link>
+                </span>
                 .
               </p>
 

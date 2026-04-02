@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const { fetchUser } = useAuth();
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (data: SignInForm) => {
     try {
@@ -127,21 +128,24 @@ export default function LoginPage() {
                 <label className="block text-sm font-medium text-[#0F52BA] mb-2">
                   Password
                 </label>
+
                 <input
                   {...register("password", { required: true })}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-xl shadow-sm bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0F52BA] focus:border-[#0F52BA] transition"
                 />
               </div>
 
               <div className="flex items-center justify-between gap-3 text-sm">
-                <label className="flex items-center gap-2 text-gray-600 cursor-pointer select-none">
+                <label className="mt-2 flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-[#0F52BA] focus:ring-[#0F52BA]"
+                    checked={showPassword}
+                    onChange={(e) => setShowPassword(e.target.checked)}
+                    className="h-4 w-4 accent-[#0F52BA]"
                   />
-                  <span className="text-sm">Remember Me</span>
+                  Show password
                 </label>
 
                 <Link
