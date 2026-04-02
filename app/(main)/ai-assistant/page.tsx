@@ -371,6 +371,10 @@ export default function AiAssistantPage() {
       setMessages([]);
 
       await handleCreateNewChat();
+
+      if (window.innerWidth < 768) {
+        setIsHistoryOpen(false);
+      }
     } catch {
       // Keep current UI state if bulk delete fails.
     } finally {
@@ -402,6 +406,8 @@ export default function AiAssistantPage() {
             onClick={handleClearAllHistory}
             className="mt-2 w-full rounded-lg border border-red-200 bg-red-50 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
             disabled={sessions.length === 0 || isClearingAll}
+            aria-label="Clear all chat history"
+            title="Clear all chat history"
           >
             {isClearingAll ? 'Clearing...' : 'Clear all history'}
           </button>
