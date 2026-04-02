@@ -350,6 +350,10 @@ export default function AiAssistantPage() {
     }
   };
 
+  const handleClearAllHistory = async () => {
+    // Step 1: UI wiring only. Deletion logic will be added in the next step.
+  };
+
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-120px)] bg-white rounded-lg border border-gray-200 overflow-hidden">
       <aside
@@ -367,6 +371,15 @@ export default function AiAssistantPage() {
           >
             <Plus size={16} />
             New Chat
+          </button>
+
+          <button
+            type="button"
+            onClick={handleClearAllHistory}
+            className="mt-2 w-full rounded-lg border border-red-200 bg-red-50 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
+            disabled={sessions.length === 0}
+          >
+            Clear all history
           </button>
 
           <div className="mt-4 space-y-2 overflow-y-auto">
