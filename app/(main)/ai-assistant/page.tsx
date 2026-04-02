@@ -344,47 +344,49 @@ export default function AiAssistantPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-120px)] bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <aside className="w-full md:w-72 md:min-w-72 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 p-4 flex flex-col max-h-56 md:max-h-none">
-        <button
-          type="button"
-          onClick={handleCreateNewChat}
-          className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-500 text-white py-2.5 text-sm font-medium hover:bg-blue-600 transition-colors"
-        >
-          <Plus size={16} />
-          New Chat
-        </button>
+      {isHistoryOpen && (
+        <aside className="w-full md:w-72 md:min-w-72 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 p-4 flex flex-col max-h-56 md:max-h-none">
+          <button
+            type="button"
+            onClick={handleCreateNewChat}
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-500 text-white py-2.5 text-sm font-medium hover:bg-blue-600 transition-colors"
+          >
+            <Plus size={16} />
+            New Chat
+          </button>
 
-        <div className="mt-4 space-y-2 overflow-y-auto">
-          {sessions.map((session) => (
-            <div
-              key={session.id}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors ${
-                activeSessionId === session.id
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setActiveSessionId(session.id)}
-            >
-              <MessageSquare size={14} className="text-gray-500" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{session.title || 'New chat'}</p>
-                <p className="text-xs text-gray-500">{formatTime(new Date(session.updatedAt))}</p>
-              </div>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleDeleteChat(session.id);
-                }}
-                className="shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                aria-label="Delete chat"
+          <div className="mt-4 space-y-2 overflow-y-auto">
+            {sessions.map((session) => (
+              <div
+                key={session.id}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors ${
+                  activeSessionId === session.id
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveSessionId(session.id)}
               >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </aside>
+                <MessageSquare size={14} className="text-gray-500" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{session.title || 'New chat'}</p>
+                  <p className="text-xs text-gray-500">{formatTime(new Date(session.updatedAt))}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleDeleteChat(session.id);
+                  }}
+                  className="shrink-0 rounded-md p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  aria-label="Delete chat"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
+      )}
 
       <div className="flex-1 flex flex-col">
         {/* Header */}
